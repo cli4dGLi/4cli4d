@@ -1,4 +1,3 @@
-import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -21,11 +20,8 @@ import plotly.express as px
 import plotly.figure_factory as ff
 import joblib
 
-logo = Image.open('Logo.jpg')
+logo = Image.open('C:/Users/ander/OneDrive/Documents/PycharmProject/9606bb20-a127-4abe-88f6-3b50a0921f78.png')
 st.image(logo)
-
-st.title('Customer Churn Prediction')
-uploaded_file = st.sidebar.file_uploader("Upload Customer Churn CSV", type=["csv"])
 
 st.title('Customer Churn Prediction')
 uploaded_file = st.sidebar.file_uploader("Upload Customer Churn CSV", type=["csv"])
