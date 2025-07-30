@@ -21,10 +21,11 @@ import plotly.express as px
 import plotly.figure_factory as ff
 import joblib
 
-HERE = os.path.dirname("Logo.jpg")
-logo_path = os.path.join(HERE, "assets", "Logo.jpg")
-logo = Image.open(logo_path)
+logo = Image.open('Logo.jpg')
 st.image(logo)
+
+st.title('Customer Churn Prediction')
+uploaded_file = st.sidebar.file_uploader("Upload Customer Churn CSV", type=["csv"])
 
 st.title('Customer Churn Prediction')
 uploaded_file = st.sidebar.file_uploader("Upload Customer Churn CSV", type=["csv"])
