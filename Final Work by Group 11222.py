@@ -21,8 +21,8 @@ import plotly.express as px
 import plotly.figure_factory as ff
 import joblib
 
-HERE = os.path.dirname("C:/Users/CLifford GLi/Desktop/Business Analytics Main/Supervised_Learning/Group Work/4cli4d/assets/logo.jpg")
-logo_path = os.path.join(HERE, "assets", "logo.jpg")
+HERE = os.path.dirname("Logo.jpg")
+logo_path = os.path.join(HERE, "assets", "Logo.jpg")
 logo = Image.open(logo_path)
 st.image(logo)
 
