@@ -161,6 +161,92 @@ def _render_admin_user_tools() -> None:
         )
 
 
+def render_admin_page() -> None:
+    if st.session_state.get("auth_role") != "admin":
+        st.warning("Admin access is needed for this page.")
+        return
+
+    st.markdown("# Admin Settings 🔐")
+    st.markdown('<div class="brain-card friendly-text">Create learner accounts, reset passwords, and manage access.</div>', unsafe_allow_html=True)
+
+    st.markdown("## Create a user")
+    with st.form("admin-page-create-user-form", clear_on_submit=True):
+        username = st.text_input("New username", max_chars=40, key="admin-page-create-username")
+        display_name = st.text_input("Display name", max_chars=60, key="admin-page-create-display-name")
+        password = st.text_input("Temporary password", type="password", key="admin-page-create-password")
+        role = st.selectbox("Role", ["learner", "admin"], key="admin-page-create-role")
+        submitted = st.form_submit_button("Create user")
+    if submitted:
+        clean = database.normalize_username(username)
+        if not _valid_username(clean):
+            st.warning("Use 3-40 letters, numbers, dot, dash, or underscore.")
+        elif len(password) < 8:
+            st.warning("Use at least 8 characters for the password.")
+        elif database.get_app_user(clean):
+            st.warning("That username already exists.")
+        else:
+            database.create_app_user(clean, display_name or clean, hash_password(password), role)
+            st.success(f"Created {clean}.")
+            st.rerun()
+
+    users = [dict(row) for row in database.list_app_users()]
+    st.markdown("## Existing users")
+    if not users:
+        st.info("No users yet.")
+        return
+
+    st.dataframe(
+        [
+            {
+                "Username": row["username"],
+                "Name": row["display_name"],
+                "Role": row["role"],
+                "Active": "yes" if row["is_active"] else "no",
+                "Last login": row["last_login_at"] or "",
+            }
+            for row in users
+        ],
+        use_container_width=True,
+        hide_index=True,
+    )
+
+    labels = [f"{row['username']} ({row['role']})" for row in users]
+    selected_label = st.selectbox("Edit user", labels, key="admin-page-edit-user-select")
+    selected = users[labels.index(selected_label)]
+    is_self = selected["username"] == st.session_state.get("auth_user")
+
+    with st.form("admin-page-edit-user-form"):
+        edit_display = st.text_input("Display name", value=selected["display_name"] or selected["username"], key="admin-page-edit-display")
+        edit_role = st.selectbox(
+            "Role",
+            ["learner", "admin"],
+            index=0 if selected["role"] == "learner" else 1,
+            disabled=is_self,
+            key="admin-page-edit-role",
+        )
+        edit_active = st.checkbox("Active", value=bool(selected["is_active"]), disabled=is_self, key="admin-page-edit-active")
+        new_password = st.text_input(
+            "New password",
+            type="password",
+            help="Leave blank to keep current password.",
+            key="admin-page-edit-password",
+        )
+        saved = st.form_submit_button("Save changes")
+    if saved:
+        if new_password and len(new_password) < 8:
+            st.warning("Use at least 8 characters for the password.")
+        else:
+            database.update_app_user(
+                selected["username"],
+                display_name=edit_display,
+                password_hash=hash_password(new_password) if new_password else None,
+                role=selected["role"] if is_self else edit_role,
+                is_active=True if is_self else edit_active,
+            )
+            st.success("User updated.")
+            st.rerun()
+
+
 def require_login() -> bool:
     has_secret_admin = _bootstrap_secret_admin()
     if not has_secret_admin and not database.list_app_users():
@@ -178,7 +264,10 @@ def require_login() -> bool:
             if st.button("Log out"):
                 _clear_auth()
                 st.rerun()
-            _render_admin_user_tools()
+            if st.session_state.get("auth_role") == "admin":
+                if st.button("Admin settings"):
+                    st.session_state.page = "admin"
+                    st.rerun()
         return True
 
     st.markdown("# Brain Builder Login")

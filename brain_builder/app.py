@@ -32,6 +32,7 @@ PAGES = {
     "puzzles": "Wisdom Puzzles",
     "progress": "Growth Garden",
     "assessment": "Grown-up Tent",
+    "admin": "Admin Settings",
 }
 
 
@@ -88,6 +89,10 @@ def _choose_child_profile() -> bool:
 
     st.markdown("# Who is learning today? ✨")
     styles.child_card("Tap your name, or add your name to begin.")
+    if st.session_state.get("auth_role") == "admin":
+        if st.button("ADMIN SETTINGS 🔐", key="profile-admin-settings"):
+            st.session_state.page = "admin"
+            st.rerun()
     profiles = [dict(row) for row in database.get_child_profiles()]
     if profiles:
         for row_start in range(0, len(profiles), 3):
@@ -150,6 +155,8 @@ def _home() -> None:
         ("GROWTH GARDEN 🌟", "progress"),
         ("GROWN-UP TENT 🔐", "assessment"),
     ]
+    if st.session_state.get("auth_role") == "admin":
+        modules.append(("ADMIN SETTINGS 🔐", "admin"))
     for row_start in range(0, len(modules), 2):
         cols = st.columns(2)
         for offset, (label, page) in enumerate(modules[row_start : row_start + 2]):
@@ -179,6 +186,8 @@ def _render_page(page: str) -> None:
             progress.render()
         elif page == "assessment":
             assessment.render()
+        elif page == "admin":
+            auth.render_admin_page()
         else:
             _home()
     except Exception:
@@ -192,9 +201,12 @@ def main() -> None:
     if not auth.require_login():
         return
     _session_timeout()
+    page = st.session_state.get("page", "home")
+    if page == "admin":
+        _render_page(page)
+        return
     if not _choose_child_profile():
         return
-    page = st.session_state.get("page", "home")
     _render_page(page)
 
 

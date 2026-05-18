@@ -52,6 +52,8 @@ After signing in as admin, open the sidebar and use **Admin: users** to:
 - make another grown-up an admin
 - deactivate users who should no longer have access
 
+On tablets, the sidebar may be hidden. Admin users also get a large **Admin Settings** button on the learner selection screen and home screen.
+
 ## Child profiles
 
 Several children can use the same app. After login, each child taps their name or adds a simple profile with:
