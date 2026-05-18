@@ -20,6 +20,7 @@ DEFAULT_SETTINGS = {
     "difficulty_english": "1",
     "difficulty_wordproblems": "1",
     "difficulty_science": "1",
+    "difficulty_puzzles": "1",
     "difficulty_assessment": "1",
     "voice_notice_ack": "false",
 }
@@ -237,6 +238,7 @@ def check_award_badges() -> None:
         ("english", 10, 0.80, "Reading Hero"),
         ("wordproblems", 5, 0.80, "Story Rescue Hero"),
         ("science", 10, 0.80, "Super Scientist"),
+        ("puzzles", 10, 0.80, "Puzzle Hero"),
     ]
     today = date.today().isoformat()
     with connect() as conn:

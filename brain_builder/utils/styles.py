@@ -27,6 +27,25 @@ def inject_global_css() -> None:
             color: var(--ink);
         }
 
+        div[data-testid="stMarkdownContainer"],
+        div[data-testid="stWidgetLabel"],
+        div[data-testid="stRadio"] label,
+        div[data-testid="stSelectbox"] label,
+        div[data-testid="stTextInput"] label,
+        div[data-testid="stExpander"] details,
+        div[data-testid="stExpander"] summary,
+        .stRadio p,
+        .stSelectbox p,
+        .stTextInput p {
+            color: var(--ink) !important;
+        }
+
+        div[role="radiogroup"] label,
+        div[role="radiogroup"] span,
+        label[data-baseweb="radio"] span {
+            color: var(--ink) !important;
+        }
+
         .stApp {
             background: radial-gradient(circle at top left, #FFF8B8 0, #FFFDE7 35%, #E8F5E9 100%);
         }
@@ -293,6 +312,47 @@ def inject_global_css() -> None:
             background: #FFFFFF;
             font-size: 30px;
             flex: 0 0 auto;
+        }
+
+        .maze-grid {
+            display: grid;
+            gap: 8px;
+            justify-content: center;
+            margin: 1rem auto;
+        }
+
+        .maze-cell {
+            width: min(12vw, 62px);
+            height: min(12vw, 62px);
+            display: grid;
+            place-items: center;
+            border-radius: 14px;
+            border: 3px solid #FFFFFF;
+            font-size: 30px;
+            font-weight: 900;
+            box-shadow: 0 5px 0 rgba(36, 48, 66, 0.12);
+        }
+
+        .maze-wall {
+            background: #5C6BC0;
+        }
+
+        .maze-open {
+            background: #E3F2FD;
+        }
+
+        .maze-path {
+            background: #C8E6C9;
+        }
+
+        .maze-hero {
+            background: #FFE082;
+            border-color: #EF5350;
+        }
+
+        .maze-goal {
+            background: #F8BBD0;
+            border-color: #EC407A;
         }
 
         @media (max-width: 700px) {

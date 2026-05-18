@@ -115,7 +115,7 @@ def _feedback(run: Dict[str, Any]) -> None:
 def _sentence_builder(run: Dict[str, Any], item: Dict[str, Any]) -> None:
     selected: List[str] = run.setdefault("selected_words", [])
     st.markdown(
-        f'<div class="brain-card friendly-text">Your sentence: {" ".join(selected) or "Tap the words"}</div>',
+        f'<div class="brain-card friendly-text">Your sentence: {" ".join(selected) or "Tap the words in order to make a clear sentence."}</div>',
         unsafe_allow_html=True,
     )
     options = [str(option) for option in item["options"]]
