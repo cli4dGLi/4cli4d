@@ -78,15 +78,15 @@ def _home() -> None:
     child_name = database.get_setting("child_name", "OB") or "OB"
     st.markdown(f"# Hello {child_name}! Ready to play? 🌟")
     gamify.player_hud()
-    gamify.mascot_banner("Star Scout, Book Buddy, Drip the Scientist, and Puzzle Bot have new missions for you.")
-    styles.child_card("Pick a quest. Win stars. Fill your adventure bar.")
+    gamify.mascot_banner("Captain Spark, Book Shield, Lab Hero, Puzzle Bot, and Rescue Pup have missions for you.")
+    styles.child_card("Pick a hero mission. Win power points. Fill your hero meter.")
 
     modules = [
-        ("MATH QUEST 🧮", "maths"),
-        ("BOOK QUEST 📖", "english"),
-        ("STORY QUEST 📚", "wordproblems"),
-        ("WONDER LAB 🔬", "science"),
-        ("TREASURE MAP 🌟", "progress"),
+        ("NUMBER HERO 🧮", "maths"),
+        ("READING HERO 📖", "english"),
+        ("STORY RESCUE 📚", "wordproblems"),
+        ("SUPER SCIENCE 🔬", "science"),
+        ("HERO MAP 🌟", "progress"),
         ("GROWN-UP BASE 🔐", "assessment"),
     ]
     for row_start in range(0, len(modules), 2):

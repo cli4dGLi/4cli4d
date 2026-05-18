@@ -91,7 +91,7 @@ def _show_feedback(run: Dict[str, Any]) -> None:
         """,
         unsafe_allow_html=True,
     )
-    gamify.helper_tip(feedback.get("fact", "Keep going, number explorer!"), "🧮")
+    gamify.helper_tip(feedback.get("fact", "Keep going, Number Hero!"), "🧮")
     if st.button("Next question"):
         run["idx"] += 1
         run["feedback"] = None
@@ -150,7 +150,7 @@ def _render_question(run: Dict[str, Any]) -> None:
 
 def render() -> None:
     st.markdown("# Mental Maths 🧮")
-    gamify.adventure_header("Math Quest", "⭐", "Help Star Scout collect number gems.")
+    gamify.adventure_header("Number Hero Mission", "⚡", "Help Captain Spark power up Number City.")
     run = st.session_state.get("maths_run")
     if run:
         _render_question(run)
