@@ -6,6 +6,7 @@ import streamlit as st
 
 import database
 from modules import assessment, english, maths, progress, puzzles, science, wordproblems
+from utils import auth
 from utils import gamify
 from utils import styles
 
@@ -134,6 +135,8 @@ def _render_page(page: str) -> None:
 
 
 def main() -> None:
+    if not auth.require_login():
+        return
     _session_timeout()
     if not _confirm_child_name():
         return

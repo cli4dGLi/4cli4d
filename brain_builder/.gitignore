@@ -1,0 +1,7 @@
+brain_builder.db
+*.db-journal
+*.sqlite
+*.sqlite3
+.streamlit/secrets.toml
+__pycache__/
+*.py[cod]
