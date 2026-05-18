@@ -7,6 +7,7 @@ import streamlit as st
 
 import claude_api
 import database
+from utils import gamify
 from utils import styles
 from utils.scoring import running_record_level, wpm_band
 from utils.speech_component import privacy_notice, speech_recognizer
@@ -88,6 +89,7 @@ def _parent_results(result: Dict[str, Any]) -> None:
 
 def render(context_key: str = "english") -> None:
     st.markdown("## Read to Me 🎙️")
+    gamify.adventure_header("Read-Aloud Stage", "🎙️", "Book Buddy listens for brave reading.")
     if not _pin_gate_for_notice():
         return
 
@@ -98,6 +100,7 @@ def render(context_key: str = "english") -> None:
     if result_key in st.session_state:
         result = st.session_state[result_key]
         assessment = result["assessment"]
+        gamify.reward_chest(result["stars"], result["stars"], 3)
         st.markdown(styles.stars_html(result["stars"]), unsafe_allow_html=True)
         styles.child_card(assessment.get("encouragement", "You read beautifully! 🌟"))
         _parent_results(result)

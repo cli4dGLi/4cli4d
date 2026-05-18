@@ -162,6 +162,156 @@ def inject_global_css() -> None:
             font-weight: 900;
         }
 
+        .hud {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            margin: 12px 0 10px;
+        }
+
+        .hud-stat {
+            background: #FFFFFF;
+            border: 3px solid #81D4FA;
+            border-radius: 18px;
+            padding: 0.85rem;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 900;
+            box-shadow: 0 7px 0 rgba(36, 48, 66, 0.12);
+        }
+
+        .hud-stat b {
+            font-size: 28px;
+        }
+
+        .level-shell {
+            width: 100%;
+            height: 20px;
+            background: #FFFFFF;
+            border: 3px solid #FFD54F;
+            border-radius: 999px;
+            overflow: hidden;
+            margin: 8px 0 18px;
+        }
+
+        .level-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #66BB6A, #42A5F5, #AB47BC);
+        }
+
+        .adventure-header {
+            display: grid;
+            grid-template-columns: 88px 1fr;
+            gap: 16px;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.9);
+            border: 3px solid #FFD54F;
+            border-radius: 24px;
+            padding: 1rem;
+            margin: 0.75rem 0 1rem;
+            box-shadow: 0 10px 24px rgba(39, 54, 74, 0.08);
+        }
+
+        .mascot-bubble {
+            width: 76px;
+            height: 76px;
+            display: grid;
+            place-items: center;
+            border-radius: 999px;
+            background: radial-gradient(circle, #FFFFFF, #FFE082);
+            font-size: 44px;
+            box-shadow: inset 0 0 0 3px rgba(255,255,255,0.8);
+        }
+
+        .mission-title {
+            font-size: clamp(24px, 4vw, 38px);
+            font-weight: 900;
+            line-height: 1.05;
+        }
+
+        .mission-text {
+            font-size: 21px;
+            font-weight: 800;
+            line-height: 1.25;
+        }
+
+        .mission-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 3px solid #A5D6A7;
+            border-radius: 22px;
+            padding: 1rem;
+            margin: 0.75rem 0;
+        }
+
+        .mission-strip {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            background: #E1F5FE;
+            border: 3px solid #4FC3F7;
+            border-radius: 18px;
+            padding: 0.75rem 1rem;
+            font-size: 20px;
+            font-weight: 900;
+            margin-top: 0.5rem;
+        }
+
+        .reward-chest {
+            text-align: center;
+            background: linear-gradient(135deg, #FFFFFF 0%, #FFF3E0 100%);
+            border: 4px solid #FFD54F;
+            border-radius: 28px;
+            padding: 1.25rem;
+            box-shadow: 0 12px 0 rgba(36, 48, 66, 0.12);
+        }
+
+        .reward-icon {
+            font-size: clamp(70px, 13vw, 132px);
+            line-height: 1;
+        }
+
+        .helper-tip {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #F3E5F5;
+            border: 3px solid #CE93D8;
+            border-radius: 20px;
+            padding: 0.85rem 1rem;
+            font-size: 20px;
+            font-weight: 900;
+            margin: 0.75rem 0;
+        }
+
+        .helper-face {
+            display: inline-grid;
+            place-items: center;
+            width: 52px;
+            height: 52px;
+            border-radius: 999px;
+            background: #FFFFFF;
+            font-size: 30px;
+            flex: 0 0 auto;
+        }
+
+        @media (max-width: 700px) {
+            .hud {
+                grid-template-columns: 1fr;
+            }
+            .adventure-header {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            .mascot-bubble {
+                margin: 0 auto;
+            }
+            .mission-strip {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
         .parent-note {
             font-size: 14px;
             color: #5F6C7B;

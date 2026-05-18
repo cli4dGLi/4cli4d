@@ -7,6 +7,7 @@ import streamlit as st
 
 import claude_api
 import database
+from utils import gamify
 from utils import styles
 from utils.scoring import stars_for_score
 from utils.tts import read_button
@@ -66,6 +67,7 @@ def _finish(run: Dict[str, Any]) -> None:
         run["new_level"] = new_level
         run["logged"] = True
     st.markdown("## Super maths!")
+    gamify.reward_chest(stars, run["score"], 5)
     st.markdown(styles.stars_html(stars), unsafe_allow_html=True)
     st.markdown(f'<div class="brain-card friendly-text">You solved {run["score"]} out of 5. Brilliant trying! 🌟</div>', unsafe_allow_html=True)
     if st.button("Play maths again"):
@@ -89,6 +91,7 @@ def _show_feedback(run: Dict[str, Any]) -> None:
         """,
         unsafe_allow_html=True,
     )
+    gamify.helper_tip(feedback.get("fact", "Keep going, number explorer!"), "🧮")
     if st.button("Next question"):
         run["idx"] += 1
         run["feedback"] = None
@@ -126,6 +129,7 @@ def _render_question(run: Dict[str, Any]) -> None:
 
     question = run["questions"][run["idx"]]
     timer_seconds = int(run.get("timer_seconds", _timer_seconds(run.get("level", 1))))
+    gamify.mission_progress(run["idx"] + 1, 5, run["score"])
     st.caption(f"Question {run['idx'] + 1} of 5")
     st.caption(f"You have {timer_seconds} seconds.")
     styles.timer_bar(timer_seconds)
@@ -146,6 +150,7 @@ def _render_question(run: Dict[str, Any]) -> None:
 
 def render() -> None:
     st.markdown("# Mental Maths 🧮")
+    gamify.adventure_header("Math Quest", "⭐", "Help Star Scout collect number gems.")
     run = st.session_state.get("maths_run")
     if run:
         _render_question(run)
