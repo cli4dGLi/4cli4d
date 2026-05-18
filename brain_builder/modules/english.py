@@ -9,6 +9,7 @@ import streamlit as st
 import claude_api
 import database
 from modules import reading_assessment
+from utils import gamify
 from utils import styles
 from utils.scoring import stars_for_score
 from utils.tts import read_button
@@ -81,6 +82,7 @@ def _finish(run: Dict[str, Any]) -> None:
         database.adapt_difficulty("english", run["score"])
         run["logged"] = True
     st.markdown("## Reading stars!")
+    gamify.reward_chest(stars, run["score"], 5)
     st.markdown(styles.stars_html(stars), unsafe_allow_html=True)
     styles.child_card(f"You got {run['score']} out of 5. Lovely reading! 🌟")
     if st.button("Play reading again"):
@@ -101,6 +103,7 @@ def _feedback(run: Dict[str, Any]) -> None:
         """,
         unsafe_allow_html=True,
     )
+    gamify.helper_tip("Book Buddy says every try grows your reading power.", "📖")
     if st.button("Next"):
         run["idx"] += 1
         run["feedback"] = None
@@ -141,6 +144,7 @@ def _render_item(run: Dict[str, Any]) -> None:
         return
 
     item = run["items"][run["idx"]]
+    gamify.mission_progress(run["idx"] + 1, 5, run["score"])
     st.caption(f"Question {run['idx'] + 1} of 5")
     styles.speech_bubble(item["prompt"])
     read_button(item["prompt"], key=f"eng-read-{run['idx']}")
@@ -162,6 +166,7 @@ def _render_item(run: Dict[str, Any]) -> None:
 
 def render() -> None:
     st.markdown("# English & Reading 📖")
+    gamify.adventure_header("Book Quest", "📖", "Help Book Buddy unlock words and stories.")
     if st.session_state.get("english_topic") == "Read to Me":
         reading_assessment.render("english")
         if st.button("Back to English games"):

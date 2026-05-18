@@ -6,6 +6,7 @@ import streamlit as st
 
 import database
 from modules import assessment, english, maths, progress, science, wordproblems
+from utils import gamify
 from utils import styles
 
 
@@ -76,15 +77,17 @@ def _go(page: str) -> None:
 def _home() -> None:
     child_name = database.get_setting("child_name", "OB") or "OB"
     st.markdown(f"# Hello {child_name}! Ready to play? 🌟")
-    styles.child_card("Tap a big button to start.")
+    gamify.player_hud()
+    gamify.mascot_banner("Star Scout, Book Buddy, Drip the Scientist, and Puzzle Bot have new missions for you.")
+    styles.child_card("Pick a quest. Win stars. Fill your adventure bar.")
 
     modules = [
-        ("MENTAL MATHS 🧮", "maths"),
-        ("ENGLISH & READING 📖", "english"),
-        ("WORD PROBLEMS 📚", "wordproblems"),
+        ("MATH QUEST 🧮", "maths"),
+        ("BOOK QUEST 📖", "english"),
+        ("STORY QUEST 📚", "wordproblems"),
         ("WONDER LAB 🔬", "science"),
-        ("MY PROGRESS 🌟", "progress"),
-        ("OB'S ASSESSMENT CENTRE 🔐", "assessment"),
+        ("TREASURE MAP 🌟", "progress"),
+        ("GROWN-UP BASE 🔐", "assessment"),
     ]
     for row_start in range(0, len(modules), 2):
         cols = st.columns(2)

@@ -7,6 +7,7 @@ import streamlit as st
 
 import claude_api
 import database
+from utils import gamify
 from utils import styles
 from utils.scoring import stars_for_score
 from utils.tts import read_button
@@ -79,6 +80,7 @@ def _finish(run: Dict[str, Any]) -> None:
         database.adapt_difficulty("science", run["score"])
         run["logged"] = True
     st.markdown("## Wonder Lab complete!")
+    gamify.reward_chest(stars, run["score"], 5)
     st.markdown(styles.stars_html(stars), unsafe_allow_html=True)
     styles.child_card(f"You got {run['score']} out of 5. Curious thinking! 🌟")
     if st.button("Explore again"):
@@ -119,6 +121,7 @@ def _render_item(run: Dict[str, Any]) -> None:
         return
 
     item = run["items"][run["idx"]]
+    gamify.mission_progress(run["idx"] + 1, 5, run["score"])
     st.caption(f"Wonder {run['idx'] + 1} of 5")
     styles.speech_bubble(f"{item.get('emoji', '🌟')}<br>{item['prompt']}")
     read_button(item["prompt"], key=f"science-read-{run['idx']}")
@@ -134,6 +137,7 @@ def _render_item(run: Dict[str, Any]) -> None:
 
 def render() -> None:
     st.markdown("# Wonder Lab 🔬")
+    gamify.adventure_header("Wonder Lab", "🔬", "Drip the Scientist has facts, places, shapes, and history to discover.")
     run = st.session_state.get("science_run")
     if run:
         _render_item(run)

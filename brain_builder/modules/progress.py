@@ -4,6 +4,7 @@ import streamlit as st
 import plotly.graph_objects as go
 
 import database
+from utils import gamify
 from utils import styles
 
 
@@ -68,7 +69,9 @@ def _parent_summary() -> None:
 
 
 def render() -> None:
-    st.markdown("# My Progress 🌟")
+    st.markdown("# Treasure Map 🌟")
+    gamify.adventure_header("Treasure Map", "🗺️", "See your star coins, badges, and learning trails.")
+    gamify.player_hud()
     c1, c2, c3 = st.columns(3)
     c1.metric("Stars", database.get_total_stars())
     c2.metric("Day streak", database.get_current_streak())

@@ -10,6 +10,7 @@ import claude_api
 import database
 from modules import parent_dashboard, reading_assessment
 from modules.assessment_tasks import DOMAINS, build_domain_tasks, domains_for_assessment, task_count
+from utils import gamify
 from utils import styles
 from utils.scoring import calculate_composite, percent_to_standard_score, percentile_for_score
 from utils.tts import read_button
@@ -78,6 +79,7 @@ def _start_assessment(assessment_type: str, mini_domain: str | None) -> None:
 def _domain_done(run: Dict[str, Any]) -> None:
     domain = run["domains"][run["domain_index"]]
     st.markdown("## Great job! You're so smart! 🌟")
+    gamify.helper_tip("Almost done! Your thinking powers are shining.", "⭐")
     styles.child_card(f"{DOMAINS[domain]} game finished. Take a happy breath.")
     if st.button("Keep going"):
         run["domain_index"] += 1
@@ -227,6 +229,7 @@ def _render_current_task(run: Dict[str, Any]) -> None:
         return
 
     task = tasks[run["task_index"]]
+    gamify.mission_progress(run["task_index"] + 1, len(tasks), int(run["points"][domain]))
     st.caption(f"{DOMAINS[domain]}: game {run['task_index'] + 1} of {len(tasks)}")
     _show_sequence_once(run, domain, run["task_index"], task)
     styles.speech_bubble(f"{task.get('visual', '')}<br>{task.get('prompt', '')}")
@@ -267,6 +270,7 @@ def render() -> None:
     if not _pin_gate():
         return
     st.markdown("# OB's Assessment Centre 🧠")
+    gamify.adventure_header("Grown-Up Base", "🔐", "Playful checks for memory, speed, words, shapes, and thinking.")
     _settings_panel()
     tab_run, tab_dash, tab_insights, tab_reading = st.tabs(
         ["A) Run Assessment", "B) Intelligence Dashboard", "C) AI Insights & Roadmap", "Read to Me"]
