@@ -18,6 +18,7 @@ try:
 except Exception:  # pragma: no cover
     st = None
 
+import database
 from utils.scoring import running_record_level
 
 
@@ -131,6 +132,13 @@ def _call_text(system: str, user: str, fallback: str, max_tokens: int = 1200) ->
         return fallback
 
 
+def _child_context() -> str:
+    try:
+        return database.ai_child_profile_context()
+    except Exception:
+        return "No child profile context is available."
+
+
 def _sample(items: List[Dict[str, Any]], count: int) -> List[Dict[str, Any]]:
     if len(items) <= count:
         return [dict(item) for item in items]
@@ -173,17 +181,18 @@ def fallback_passages() -> List[Dict[str, Any]]:
 
 def generate_maths_questions(subtopic: str, level: int) -> List[Dict[str, Any]]:
     system = (
-        "You are a cheerful maths teacher for a 5-year-old. Generate exactly 5 maths "
+        "You are a cheerful Bible-adventure maths teacher for a 5-year-old. Generate exactly 5 maths "
         "questions in JSON format. Each question must have: 'question' (string, simple "
         "language), 'options' (array of 4 strings), 'answer' (string matching one option), "
         "'emoji' (a fun related emoji). Difficulty level: {level} where 1=easiest, 5=hardest. "
+        "Use gentle Bible-era objects when useful, like sheep, stars, scrolls, baskets, wheat, bread, stones, jars, and boats. "
         "Current subtopic: {subtopic}. Return ONLY a valid JSON array, no markdown, no "
         "explanation. Each question must be a complete, clear sentence with enough context "
         "for a young child to understand, answer, and be assessed."
     ).format(level=level, subtopic=subtopic)
     return _call_json(
         system,
-        "",
+        _child_context(),
         fallback=lambda: fallback_maths(subtopic),
         validator=lambda data: _valid_items(data, ["question", "options", "answer", "emoji"]),
     )[:5]
@@ -191,14 +200,16 @@ def generate_maths_questions(subtopic: str, level: int) -> List[Dict[str, Any]]:
 
 def generate_english_items(task_type: str) -> List[Dict[str, Any]]:
     system = (
-        "You are a kind reading teacher for a 5-year-old. Generate content in JSON. "
+        "You are a kind Bible-adventure reading teacher for a 5-year-old. Generate content in JSON. "
         "For task type '{task_type}', generate 5 items. Each item: 'prompt' (what to show "
         "child), 'options' (4 choices as strings), 'answer' (correct string), 'hint' "
         "(one simple word hint). Use only simple CVC words and common sight words. "
+        "When making stories or examples, use gentle Bible-era scenes such as a scroll, basket, sheep, fish, star, bread, garden, boat, or tent. "
         "Return ONLY a valid JSON array, no markdown. Prompts must use complete, clear "
         "sentences with enough context for the child to understand, respond, and be assessed."
     ).format(task_type=task_type)
     user = (
+        f"{_child_context()}\n"
         "If task_type is sentence builder, make options the shuffled words and answer the full sentence. "
         "If task_type is read-aloud comprehension, make prompt a 2-3 sentence story under 30 words."
     )
@@ -212,9 +223,11 @@ def generate_english_items(task_type: str) -> List[Dict[str, Any]]:
 
 def generate_word_problems(level: int = 1) -> List[Dict[str, Any]]:
     system = (
-        "You are a storytelling maths teacher for a 5-year-old in Ghana. Create 5 maths "
-        "word problems in JSON. Use local names (Kofi, Ama, Kwame, Abena), familiar "
-        "settings (market, school, home, farm), and real objects (fruits, balls, books). "
+        "You are a joyful Bible-story maths teacher for a 5-year-old. Create 5 maths "
+        "word problems in JSON. Use gentle Bible-inspired story settings and characters "
+        "(David, Ruth, Esther, Daniel, Moses, Miriam, Joseph, Noah) with objects like "
+        "scrolls, baskets, sheep, fish, bread, stones, stars, wheat, jars, and boats. "
+        "Keep stories respectful, non-preachy, and easy for children from different homes. "
         "Each item: 'story' (2 sentences max, under 25 words), 'question' (1 short "
         "question), 'options' (4 number strings), 'answer' (correct string), 'emojis' "
         "(2-3 relevant emojis). Return ONLY a valid JSON array, no markdown. The story and "
@@ -222,7 +235,7 @@ def generate_word_problems(level: int = 1) -> List[Dict[str, Any]]:
     )
     return _call_json(
         system,
-        f"Difficulty level: {level}",
+        f"Difficulty level: {level}\n{_child_context()}",
         fallback=fallback_word_problems,
         validator=lambda data: _valid_items(data, ["story", "question", "options", "answer", "emojis"]),
     )[:5]
@@ -230,19 +243,20 @@ def generate_word_problems(level: int = 1) -> List[Dict[str, Any]]:
 
 def generate_science_items(subtopic: str, level: int) -> List[Dict[str, Any]]:
     system = (
-        "You are a joyful science and history teacher for a 5-year-old child in Ghana. "
+        "You are a joyful Creation Lab science and history teacher for a 5-year-old child. "
         "Generate exactly 5 multiple-choice learning questions in JSON. Each item must have "
         "'prompt' (simple Grade 1 words), 'options' (array of 4 short strings), 'answer' "
         "(string matching one option), 'fact' (one happy science or history fact, max 16 words), "
         "'emoji' (one fun related emoji), and 'kind' ('science', 'geography', 'geometry', or 'history'). "
         f"Difficulty level: {level} where 1=easiest and 5=hardest. Current subtopic: {subtopic}. "
+        "Use nature, ancient world, Bible-era daily life, maps, plants, animals, stars, water, shapes, tools, and boats when useful. "
         "For history, use safe, age-kind facts about people, places, inventions, culture, and long-ago life. "
         "Return ONLY a valid JSON array, no markdown, no explanation. Prompts and facts must be "
         "complete, clear sentences with enough context for the child to understand and respond."
     )
     return _call_json(
         system,
-        "",
+        _child_context(),
         fallback=lambda: fallback_science(subtopic),
         validator=lambda data: _valid_items(data, ["prompt", "options", "answer", "fact", "emoji", "kind"]),
         max_tokens=2200,
@@ -266,7 +280,7 @@ def generate_assessment_tasks(domain: str, count: int, difficulty: int) -> List[
     )
     return _call_json(
         system,
-        "",
+        _child_context(),
         fallback=lambda: fallback_assessment(domain, count),
         validator=lambda data: _valid_items(data, ["prompt", "options", "answer", "hint", "visual", "task_type"], count=min(count, 1)),
         max_tokens=2200,
@@ -289,7 +303,8 @@ def generate_assessment_insights(
 ) -> Dict[str, Any]:
     system = (
         "You are a child educational psychologist specialising in early childhood "
-        "cognitive development. OB is a 5-year-3-month-old boy. Based on his "
+        "cognitive development. Based on the active child's parent-approved profile "
+        "when available, and the child's "
         "assessment scores across 6 WPPSI-IV cognitive domains, generate a "
         "structured parent report in JSON format with these fields:\n"
         "{\n"
@@ -300,7 +315,7 @@ def generate_assessment_insights(
         "    {'day': 'Monday', 'activity': string, 'duration_minutes': int, 'domain': string},\n"
         "    ... (7 days)\n"
         "  ],\n"
-        "  'monthly_milestone': string (what OB should achieve next month),\n"
+        "  'monthly_milestone': string (what the child should achieve next month),\n"
         "  'percentile_trajectory': string (honest assessment of path to top 1%),\n"
         "  'parent_tip': string (one specific, evidence-based parenting tip for this week)\n"
         "}\n"
@@ -308,7 +323,7 @@ def generate_assessment_insights(
     )
     user = json.dumps(
         {
-            "age": "5 years 3 months",
+            "child_profile_context": _child_context(),
             "domain_scores": domain_scores,
             "last_3_assessments": last_three,
             "parent_goal": goal,
@@ -320,7 +335,7 @@ def generate_assessment_insights(
         strengths = sorted_domains[:2] or [("vci", 100), ("fri", 100)]
         priorities = sorted_domains[-2:] or [("wmi", 100), ("pa", 100)]
         return {
-            "summary": "OB is building a broad set of early thinking skills. Short, joyful daily practice will help turn strengths into steady growth.",
+            "summary": "The child is building a broad set of early thinking skills. Short, joyful daily practice will help turn strengths into steady growth.",
             "strengths": [f"{name.upper()}: this area is showing confident performance." for name, _ in strengths],
             "priority_areas": [f"{name.upper()}: practise this area for 5-10 playful minutes each day." for name, _ in priorities],
             "weekly_plan": [
@@ -334,7 +349,7 @@ def generate_assessment_insights(
             ],
             "monthly_milestone": "Hold a 4-digit sequence, read 20 common sight words, and explain one simple pattern.",
             "percentile_trajectory": "The path to the top 1% is ambitious and will require consistent practice, sleep, reading, and varied problem-solving.",
-            "parent_tip": "Praise the strategy OB used, such as checking again or listening carefully, more than the score.",
+            "parent_tip": "Praise the strategy the child used, such as checking again or listening carefully, more than the score.",
         }
 
     data = _call_json(
@@ -350,13 +365,15 @@ def generate_assessment_insights(
 
 def generate_weekly_parent_report(history: Dict[str, Any]) -> str:
     fallback = (
-        "This week, OB practised early maths, reading, science, history, and thinking games. His strongest moments came when tasks were short, lively, and repeated. "
+        "This week, the child practised early maths, reading, science, history, and thinking games. Strong moments came when tasks were short, lively, and repeated. "
         "Next week, keep sessions to about 20 minutes and rotate memory, phonics, story maths, and Wonder Lab. Offline activity: count the items on the dinner table, "
-        "then ask OB to explain how he counted."
+        "then ask the child to explain how they counted."
     )
+    payload = dict(history)
+    payload["child_profile_context"] = _child_context()
     return _call_text(
         "You write warm 300-word weekly parent reports for early learning. Use plain language and practical advice.",
-        json.dumps(history),
+        json.dumps(payload),
         fallback,
         max_tokens=1200,
     )
@@ -364,11 +381,11 @@ def generate_weekly_parent_report(history: Dict[str, Any]) -> str:
 
 def generate_passage_library() -> List[Dict[str, Any]]:
     system = (
-        "You are a kind early reading teacher in Ghana. Generate 30 reading passages in JSON: "
+        "You are a kind Bible-adventure early reading teacher. Generate 30 reading passages in JSON: "
         "10 starter, 10 developing, and 10 fluent. Each item must have 'difficulty', 'text', "
         "and 'target_phonics'. Starter passages are 1 sentence and 5-8 common words. "
         "Developing passages are 2-3 sentences and 15-25 words. Fluent passages are 40-60 words. "
-        "Use familiar contexts like market, family, school, animals, and food. Every passage must "
+        "Use gentle Bible-era contexts like tents, gardens, sheep, boats, baskets, bread, scrolls, family, animals, and food. Every passage must "
         "be a complete, meaningful mini-story that supports a simple comprehension question. "
         "Return ONLY a valid JSON array."
     )
@@ -429,7 +446,7 @@ def _fallback_reading_assessment(passage: str, transcript: str) -> Dict[str, Any
 def assess_reading(passage: str, transcript: str) -> Dict[str, Any]:
     system = (
         "You are an expert early literacy assessor using Running Records and "
-        "DIBELS methodology. A child aged 5 years 3 months just read a passage "
+        "DIBELS methodology. A child just read a passage "
         "aloud. Compare the spoken transcript to the original passage and return "
         "a JSON assessment:\n"
         "{\n"
@@ -445,7 +462,7 @@ def assess_reading(passage: str, transcript: str) -> Dict[str, Any]:
         "}\n"
         "Return ONLY valid JSON."
     )
-    user = f"Original passage: {passage}\nChild transcript: {transcript}"
+    user = f"{_child_context()}\nOriginal passage: {passage}\nChild transcript: {transcript}"
     fallback = lambda: _fallback_reading_assessment(passage, transcript)
     return _call_json(
         system,
@@ -462,7 +479,7 @@ def score_comprehension(passage: str, question: str, answer: str) -> Dict[str, A
         "You score a 5-year-old child's spoken answer to a simple comprehension question. "
         "Return ONLY JSON with fields 'score' as 1 or 0 and 'note' as one short parent-facing sentence."
     )
-    user = json.dumps({"passage": passage, "question": question, "answer": answer})
+    user = json.dumps({"child_profile_context": _child_context(), "passage": passage, "question": question, "answer": answer})
     fallback = {"score": 1 if len(_normalise_words(answer)) >= 2 else 0, "note": "Answer contained enough detail for a basic response."}
     data = _call_json(
         system,

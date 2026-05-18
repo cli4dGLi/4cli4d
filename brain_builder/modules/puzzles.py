@@ -375,3 +375,33 @@ def render() -> None:
                         st.rerun()
                     else:
                         _start_puzzle(subtopic)
+
+
+def render() -> None:
+    st.markdown("# Wisdom Puzzles 🧩")
+    gamify.adventure_header("Solomon's Wisdom Puzzles", "🧩", "Use memory, patterns, and careful paths to grow wisdom.")
+
+    if st.session_state.get("puzzle_topic") == "Maze Rescue":
+        _render_maze()
+        if st.button("Back to wisdom puzzles"):
+            st.session_state.pop("puzzle_topic", None)
+            st.session_state.pop("maze_run", None)
+            st.rerun()
+        return
+
+    run = st.session_state.get("puzzle_run")
+    if run:
+        _render_puzzle_question(run)
+        return
+
+    styles.child_card("Pick a wisdom puzzle. Patterns, memory, odd ones, or a maze.")
+    for row_start in range(0, len(SUBTOPICS), 2):
+        cols = st.columns(2)
+        for offset, subtopic in enumerate(SUBTOPICS[row_start : row_start + 2]):
+            with cols[offset]:
+                if st.button(subtopic, key=f"wisdom-puzzle-topic-{subtopic}"):
+                    if subtopic == "Maze Rescue":
+                        st.session_state.puzzle_topic = "Maze Rescue"
+                        st.rerun()
+                    else:
+                        _start_puzzle(subtopic)

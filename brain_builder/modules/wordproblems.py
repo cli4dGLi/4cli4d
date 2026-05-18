@@ -125,3 +125,15 @@ def render() -> None:
     styles.child_card("Read the little story. Then tap the answer.")
     if st.button("Start story maths"):
         _start()
+
+
+def render() -> None:
+    st.markdown("# Parable Problems 📚")
+    gamify.adventure_header("Bible Story Maths", "🧺", "Solve gentle stories with baskets, scrolls, sheep, bread, and stars.")
+    run = st.session_state.get("word_run")
+    if run:
+        _render_problem(run)
+        return
+    styles.child_card("Read the Bible-style story. Then tap the answer.")
+    if st.button("Start parable maths"):
+        _start()

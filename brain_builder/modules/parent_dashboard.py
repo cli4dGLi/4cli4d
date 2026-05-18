@@ -16,20 +16,20 @@ ROADMAP = [
     (
         "Phase 1 (Month 1-3): Foundation",
         "70th percentile composite",
-        "Establish daily 20-min sessions. Identify OB's 2 weakest domains. Build working memory and phonological awareness as priority.",
-        "OB can count to 100, reads 50 sight words, holds 4-digit span",
+        "Establish daily 20-min sessions. Identify the child's 2 weakest domains. Build working memory and phonological awareness as priority.",
+        "Child can count to 100, reads 50 sight words, holds 4-digit span",
     ),
     (
         "Phase 2 (Month 4-6): Acceleration",
         "85th percentile composite",
         "Introduce matrix reasoning puzzles. Multi-step word problems. Speed maths drills. Reading simple 3-sentence stories independently.",
-        "OB solves 2-step addition problems mentally, reads simple books independently, pattern recognition at 75th percentile",
+        "Child solves 2-step addition problems mentally, reads simple books independently, pattern recognition at 75th percentile",
     ),
     (
         "Phase 3 (Month 7-9): Mastery",
         "93rd percentile composite",
         "Complex analogical reasoning. Chapter-level comprehension. Cross-domain tasks. Memory palace techniques simplified for age 6.",
-        "OB in top 7%, verbal score equivalent 120+",
+        "Child in top 7%, verbal score equivalent 120+",
     ),
     (
         "Phase 4 (Month 10-12): Elite",
@@ -48,6 +48,10 @@ def _domain_scores(row: Any) -> Dict[str, float]:
         for domain in DOMAIN_LABELS
         if row[f"{domain}_score"] is not None
     }
+
+
+def _child_label() -> str:
+    return database.child_first_name(default="Child")
 
 
 def _latest_insights(row: Any) -> Dict[str, Any] | None:
@@ -83,7 +87,7 @@ def _radar(scores: Dict[str, float]) -> None:
     if not values:
         return
     fig = go.Figure()
-    fig.add_trace(go.Scatterpolar(r=values + values[:1], theta=labels + labels[:1], fill="toself", name="OB"))
+    fig.add_trace(go.Scatterpolar(r=values + values[:1], theta=labels + labels[:1], fill="toself", name=_child_label()))
     fig.add_trace(go.Scatterpolar(r=average + average[:1], theta=labels + labels[:1], name="Age-5 average"))
     fig.update_layout(
         polar=dict(radialaxis=dict(visible=True, range=[70, 135])),
@@ -188,9 +192,9 @@ def render_dashboard() -> None:
     _heatmap()
 
     st.download_button(
-        "Download OB's full history CSV",
+        f"Download {_child_label()}'s full history CSV",
         database.export_history_csv(),
-        file_name="ob_brain_builder_history.csv",
+        file_name=f"{_child_label().lower()}_brain_builder_history.csv",
         mime="text/csv",
     )
 

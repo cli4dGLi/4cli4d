@@ -23,6 +23,7 @@ DEFAULT_SETTINGS = {
     "difficulty_puzzles": "1",
     "difficulty_assessment": "1",
     "voice_notice_ack": "false",
+    "ai_child_profile_context_allowed": "false",
 }
 
 
@@ -32,10 +33,27 @@ def connect() -> sqlite3.Connection:
     return conn
 
 
+def _ensure_column(conn: sqlite3.Connection, table: str, column: str, definition: str) -> None:
+    columns = {row["name"] for row in conn.execute(f"PRAGMA table_info({table})").fetchall()}
+    if column not in columns:
+        conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+
+
 def init_db() -> None:
     with connect() as conn:
         conn.executescript(
             """
+            CREATE TABLE IF NOT EXISTS child_profiles (
+                id INTEGER PRIMARY KEY,
+                name TEXT NOT NULL,
+                age_years INTEGER,
+                date_of_birth TEXT,
+                created_by_user TEXT,
+                created_at TEXT,
+                updated_at TEXT,
+                last_seen_at TEXT
+            );
+
             CREATE TABLE IF NOT EXISTS sessions (
                 id INTEGER PRIMARY KEY,
                 module TEXT,
@@ -149,6 +167,11 @@ def init_db() -> None:
             );
             """
         )
+        _ensure_column(conn, "sessions", "child_profile_id", "INTEGER")
+        _ensure_column(conn, "assessments", "child_profile_id", "INTEGER")
+        _ensure_column(conn, "reading_assessments", "child_profile_id", "INTEGER")
+        _ensure_column(conn, "skill_mastery", "child_profile_id", "INTEGER")
+        _ensure_column(conn, "daily_plans", "child_profile_id", "INTEGER")
         for key, value in DEFAULT_SETTINGS.items():
             conn.execute("INSERT OR IGNORE INTO settings(key, value) VALUES (?, ?)", (key, value))
         conn.commit()
@@ -179,6 +202,97 @@ def get_parent_pin() -> str:
 
 def set_parent_pin(pin: str) -> None:
     set_setting("parent_pin", pin)
+
+
+def get_active_child_id() -> int | None:
+    try:
+        import streamlit as st
+
+        value = st.session_state.get("active_child_id")
+        return int(value) if value else None
+    except Exception:
+        return None
+
+
+def _resolve_child_id(child_profile_id: int | None = None) -> int | None:
+    return child_profile_id if child_profile_id is not None else get_active_child_id()
+
+
+def create_child_profile(
+    name: str,
+    age_years: int,
+    date_of_birth: str,
+    created_by_user: str | None = None,
+) -> int:
+    clean_name = name.strip()[:60] or "Friend"
+    safe_age = max(2, min(12, int(age_years)))
+    now = now_iso()
+    with connect() as conn:
+        cur = conn.execute(
+            """
+            INSERT INTO child_profiles(name, age_years, date_of_birth, created_by_user, created_at, updated_at, last_seen_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (clean_name, safe_age, date_of_birth, created_by_user, now, now, now),
+        )
+        conn.commit()
+        return int(cur.lastrowid)
+
+
+def get_child_profiles() -> List[sqlite3.Row]:
+    with connect() as conn:
+        return list(conn.execute("SELECT * FROM child_profiles ORDER BY last_seen_at DESC, name ASC").fetchall())
+
+
+def get_child_profile(child_profile_id: int | None = None) -> sqlite3.Row | None:
+    child_id = _resolve_child_id(child_profile_id)
+    if child_id is None:
+        return None
+    with connect() as conn:
+        return conn.execute("SELECT * FROM child_profiles WHERE id = ?", (int(child_id),)).fetchone()
+
+
+def touch_child_profile(child_profile_id: int) -> None:
+    with connect() as conn:
+        conn.execute(
+            "UPDATE child_profiles SET last_seen_at = ?, updated_at = ? WHERE id = ?",
+            (now_iso(), now_iso(), int(child_profile_id)),
+        )
+        conn.commit()
+
+
+def child_first_name(child_profile_id: int | None = None, default: str = "friend") -> str:
+    profile = get_child_profile(child_profile_id)
+    if not profile:
+        return default
+    return str(profile["name"]).strip().split()[0]
+
+
+def ai_child_profile_context_allowed() -> bool:
+    return get_setting("ai_child_profile_context_allowed", "false") == "true"
+
+
+def set_ai_child_profile_context_allowed(allowed: bool) -> None:
+    set_setting("ai_child_profile_context_allowed", "true" if allowed else "false")
+
+
+def ai_child_profile_context(child_profile_id: int | None = None) -> str:
+    profile = get_child_profile(child_profile_id)
+    if not ai_child_profile_context_allowed():
+        age_text = f" Active child age_years={profile['age_years']}." if profile else ""
+        return (
+            "Parent has not approved sharing the child's name or date of birth with Claude. "
+            f"{age_text} Tailor only from age band, active difficulty, and learning performance."
+        )
+    if not profile:
+        return "No active child profile is selected."
+    return (
+        "Parent-approved child profile for personalization: "
+        f"name={profile['name']}; age_years={profile['age_years']}; "
+        f"date_of_birth={profile['date_of_birth']}. "
+        "Use this only to adapt tone, difficulty, examples, and development planning. "
+        "Do not reveal the date of birth back to the child."
+    )
 
 
 def normalize_username(username: str) -> str:
@@ -285,26 +399,36 @@ def set_difficulty(module: str, level: int) -> None:
     set_setting(f"difficulty_{module}", str(max(1, min(5, level))))
 
 
-def log_session(module: str, subtopic: str, score: int, stars: int, difficulty_level: int) -> int:
+def log_session(
+    module: str,
+    subtopic: str,
+    score: int,
+    stars: int,
+    difficulty_level: int,
+    child_profile_id: int | None = None,
+) -> int:
     timestamp = now_iso()
+    child_id = _resolve_child_id(child_profile_id)
     with connect() as conn:
         cur = conn.execute(
             """
-            INSERT INTO sessions(module, subtopic, score, stars, difficulty_level, timestamp)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO sessions(module, subtopic, score, stars, difficulty_level, timestamp, child_profile_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-            (module, subtopic, int(score), int(stars), int(difficulty_level), timestamp),
+            (module, subtopic, int(score), int(stars), int(difficulty_level), timestamp, child_id),
         )
         conn.commit()
         session_id = int(cur.lastrowid)
-    update_skill_mastery(module, subtopic, score, 5)
-    mark_daily_plan_done(module, subtopic)
+    update_skill_mastery(module, subtopic, score, 5, child_profile_id=child_id)
+    mark_daily_plan_done(module, subtopic, child_profile_id=child_id)
     check_award_badges()
     return session_id
 
 
-def skill_key(module: str, subtopic: str) -> str:
-    safe = "".join(ch.lower() if ch.isalnum() else "-" for ch in f"{module}:{subtopic}")
+def skill_key(module: str, subtopic: str, child_profile_id: int | None = None) -> str:
+    child_id = _resolve_child_id(child_profile_id)
+    prefix = f"child-{child_id}:" if child_id else "shared:"
+    safe = "".join(ch.lower() if ch.isalnum() else "-" for ch in f"{prefix}{module}:{subtopic}")
     while "--" in safe:
         safe = safe.replace("--", "-")
     return safe.strip("-")
@@ -316,8 +440,10 @@ def update_skill_mastery(
     score: int,
     total_questions: int = 5,
     avg_response_ms: int | None = None,
+    child_profile_id: int | None = None,
 ) -> None:
-    key = skill_key(module, subtopic)
+    child_id = _resolve_child_id(child_profile_id)
+    key = skill_key(module, subtopic, child_id)
     today = date.today()
     accuracy = max(0.0, min(1.0, int(score) / max(1, int(total_questions))))
     with connect() as conn:
@@ -357,9 +483,9 @@ def update_skill_mastery(
             INSERT INTO skill_mastery(
                 skill_key, module, subtopic, display_name, mastery, attempts,
                 correct_total, total_questions, avg_response_ms, streak,
-                last_score, last_practiced, next_due_date
+                last_score, last_practiced, next_due_date, child_profile_id
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(skill_key) DO UPDATE SET
                 module = excluded.module,
                 subtopic = excluded.subtopic,
@@ -372,7 +498,8 @@ def update_skill_mastery(
                 streak = excluded.streak,
                 last_score = excluded.last_score,
                 last_practiced = excluded.last_practiced,
-                next_due_date = excluded.next_due_date
+                next_due_date = excluded.next_due_date,
+                child_profile_id = excluded.child_profile_id
             """,
             (
                 key,
@@ -388,52 +515,80 @@ def update_skill_mastery(
                 int(score),
                 today.isoformat(),
                 due,
+                child_id,
             ),
         )
         conn.commit()
 
 
-def get_skill_mastery_rows() -> List[sqlite3.Row]:
+def get_skill_mastery_rows(child_profile_id: int | None = None) -> List[sqlite3.Row]:
+    child_id = _resolve_child_id(child_profile_id)
     with connect() as conn:
-        return list(conn.execute("SELECT * FROM skill_mastery ORDER BY mastery ASC, next_due_date ASC").fetchall())
-
-
-def get_daily_plan(plan_date: str | None = None) -> List[sqlite3.Row]:
-    day = plan_date or date.today().isoformat()
-    with connect() as conn:
+        if child_id is None:
+            return list(conn.execute("SELECT * FROM skill_mastery ORDER BY mastery ASC, next_due_date ASC").fetchall())
         return list(
             conn.execute(
-                "SELECT * FROM daily_plans WHERE plan_date = ? ORDER BY position ASC",
-                (day,),
+                "SELECT * FROM skill_mastery WHERE child_profile_id = ? ORDER BY mastery ASC, next_due_date ASC",
+                (child_id,),
             ).fetchall()
         )
 
 
-def save_daily_plan(items: Iterable[Dict[str, Any]], plan_date: str | None = None) -> None:
+def _daily_plan_key(day: str, child_profile_id: int | None = None) -> str:
+    child_id = _resolve_child_id(child_profile_id)
+    return f"child-{child_id}:{day}" if child_id else day
+
+
+def get_daily_plan(plan_date: str | None = None, child_profile_id: int | None = None) -> List[sqlite3.Row]:
     day = plan_date or date.today().isoformat()
+    key = _daily_plan_key(day, child_profile_id)
     with connect() as conn:
-        conn.execute("DELETE FROM daily_plans WHERE plan_date = ?", (day,))
+        return list(
+            conn.execute(
+                "SELECT * FROM daily_plans WHERE plan_date = ? ORDER BY position ASC",
+                (key,),
+            ).fetchall()
+        )
+
+
+def save_daily_plan(
+    items: Iterable[Dict[str, Any]],
+    plan_date: str | None = None,
+    child_profile_id: int | None = None,
+) -> None:
+    day = plan_date or date.today().isoformat()
+    child_id = _resolve_child_id(child_profile_id)
+    key = _daily_plan_key(day, child_id)
+    with connect() as conn:
+        conn.execute("DELETE FROM daily_plans WHERE plan_date = ?", (key,))
         for index, item in enumerate(items, 1):
             conn.execute(
                 """
-                INSERT INTO daily_plans(plan_date, position, module, subtopic, title, reason, status, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, 'planned', ?)
+                INSERT INTO daily_plans(plan_date, position, module, subtopic, title, reason, status, created_at, child_profile_id)
+                VALUES (?, ?, ?, ?, ?, ?, 'planned', ?, ?)
                 """,
                 (
-                    day,
+                    key,
                     index,
                     item["module"],
                     item["subtopic"],
                     item["title"],
                     item["reason"],
                     now_iso(),
+                    child_id,
                 ),
             )
         conn.commit()
 
 
-def mark_daily_plan_done(module: str, subtopic: str, plan_date: str | None = None) -> None:
+def mark_daily_plan_done(
+    module: str,
+    subtopic: str,
+    plan_date: str | None = None,
+    child_profile_id: int | None = None,
+) -> None:
     day = plan_date or date.today().isoformat()
+    key = _daily_plan_key(day, child_profile_id)
     with connect() as conn:
         conn.execute(
             """
@@ -441,7 +596,7 @@ def mark_daily_plan_done(module: str, subtopic: str, plan_date: str | None = Non
             SET status = 'done'
             WHERE plan_date = ? AND module = ? AND subtopic = ?
             """,
-            (day, module, subtopic),
+            (key, module, subtopic),
         )
         conn.commit()
 
@@ -458,34 +613,66 @@ def adapt_difficulty(module: str, score: int) -> int:
     return level
 
 
-def get_recent_sessions(module: str | None = None, limit: int = 7) -> List[sqlite3.Row]:
+def get_recent_sessions(module: str | None = None, limit: int = 7, child_profile_id: int | None = None) -> List[sqlite3.Row]:
+    child_id = _resolve_child_id(child_profile_id)
     query = "SELECT * FROM sessions"
     params: list[Any] = []
+    clauses: list[str] = []
     if module:
-        query += " WHERE module = ?"
+        clauses.append("module = ?")
         params.append(module)
+    if child_id is not None:
+        clauses.append("child_profile_id = ?")
+        params.append(child_id)
+    if clauses:
+        query += " WHERE " + " AND ".join(clauses)
     query += " ORDER BY datetime(timestamp) DESC LIMIT ?"
     params.append(limit)
     with connect() as conn:
         return list(conn.execute(query, params).fetchall())
 
 
-def get_all_sessions() -> List[sqlite3.Row]:
+def get_all_sessions(child_profile_id: int | None = None) -> List[sqlite3.Row]:
+    child_id = _resolve_child_id(child_profile_id)
+    query = """
+        SELECT s.*, cp.name AS child_name
+        FROM sessions s
+        LEFT JOIN child_profiles cp ON cp.id = s.child_profile_id
+    """
+    params: list[Any] = []
+    if child_id is not None:
+        query += " WHERE s.child_profile_id = ?"
+        params.append(child_id)
+    query += " ORDER BY datetime(s.timestamp) DESC"
     with connect() as conn:
-        return list(conn.execute("SELECT * FROM sessions ORDER BY datetime(timestamp) DESC").fetchall())
+        return list(conn.execute(query, params).fetchall())
 
 
-def get_total_stars() -> int:
+def get_total_stars(child_profile_id: int | None = None) -> int:
+    child_id = _resolve_child_id(child_profile_id)
     with connect() as conn:
-        row = conn.execute("SELECT COALESCE(SUM(stars), 0) AS total FROM sessions").fetchone()
+        if child_id is None:
+            row = conn.execute("SELECT COALESCE(SUM(stars), 0) AS total FROM sessions").fetchone()
+        else:
+            row = conn.execute(
+                "SELECT COALESCE(SUM(stars), 0) AS total FROM sessions WHERE child_profile_id = ?",
+                (child_id,),
+            ).fetchone()
     return int(row["total"] or 0)
 
 
-def get_current_streak() -> int:
+def get_current_streak(child_profile_id: int | None = None) -> int:
+    child_id = _resolve_child_id(child_profile_id)
     dates = set()
     with connect() as conn:
         for table, column in [("sessions", "timestamp"), ("assessments", "date"), ("reading_assessments", "date")]:
-            rows = conn.execute(f"SELECT {column} AS played FROM {table}").fetchall()
+            if child_id is None:
+                rows = conn.execute(f"SELECT {column} AS played FROM {table}").fetchall()
+            else:
+                rows = conn.execute(
+                    f"SELECT {column} AS played FROM {table} WHERE child_profile_id = ?",
+                    (child_id,),
+                ).fetchall()
             for row in rows:
                 value = row["played"]
                 if value:
@@ -498,9 +685,13 @@ def get_current_streak() -> int:
     return streak
 
 
-def _module_average(module: str, limit: int | None = None) -> tuple[int, float]:
+def _module_average(module: str, limit: int | None = None, child_profile_id: int | None = None) -> tuple[int, float]:
+    child_id = _resolve_child_id(child_profile_id)
     query = "SELECT score FROM sessions WHERE module = ? ORDER BY datetime(timestamp) DESC"
     params: list[Any] = [module]
+    if child_id is not None:
+        query = "SELECT score FROM sessions WHERE module = ? AND child_profile_id = ? ORDER BY datetime(timestamp) DESC"
+        params.append(child_id)
     if limit:
         query += " LIMIT ?"
         params.append(limit)
@@ -550,17 +741,22 @@ def get_score_chart_rows(module: str | None = None, limit: int = 7) -> List[Dict
     ]
 
 
-def weak_areas() -> List[Dict[str, Any]]:
+def weak_areas(child_profile_id: int | None = None) -> List[Dict[str, Any]]:
+    child_id = _resolve_child_id(child_profile_id)
+    where = "WHERE child_profile_id = ?" if child_id is not None else ""
+    params: list[Any] = [child_id] if child_id is not None else []
     with connect() as conn:
         rows = conn.execute(
-            """
+            f"""
             SELECT module, subtopic, COUNT(*) AS attempts, AVG(score) AS avg_score
             FROM sessions
+            {where}
             GROUP BY module, subtopic
             HAVING attempts >= 1
             ORDER BY avg_score ASC
             LIMIT 6
-            """
+            """,
+            params,
         ).fetchall()
     return [dict(row) for row in rows]
 
@@ -573,16 +769,18 @@ def log_assessment(
     duration_seconds: int,
     ai_insights: Dict[str, Any],
     tasks: Iterable[Dict[str, Any]],
+    child_profile_id: int | None = None,
 ) -> int:
+    child_id = _resolve_child_id(child_profile_id)
     with connect() as conn:
         cur = conn.execute(
             """
             INSERT INTO assessments(
                 assessment_type, date, composite_score, percentile_rank,
                 vci_score, wmi_score, psi_score, fri_score, vsi_score, pa_score,
-                duration_seconds, ai_insights
+                duration_seconds, ai_insights, child_profile_id
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 assessment_type,
@@ -597,6 +795,7 @@ def log_assessment(
                 domain_scores.get("pa"),
                 duration_seconds,
                 json.dumps(ai_insights),
+                child_id,
             ),
         )
         assessment_id = int(cur.lastrowid)
@@ -621,9 +820,13 @@ def log_assessment(
     return assessment_id
 
 
-def get_assessments(limit: int | None = None) -> List[sqlite3.Row]:
+def get_assessments(limit: int | None = None, child_profile_id: int | None = None) -> List[sqlite3.Row]:
+    child_id = _resolve_child_id(child_profile_id)
     query = "SELECT * FROM assessments ORDER BY datetime(date) DESC"
     params: list[Any] = []
+    if child_id is not None:
+        query = "SELECT * FROM assessments WHERE child_profile_id = ? ORDER BY datetime(date) DESC"
+        params.append(child_id)
     if limit:
         query += " LIMIT ?"
         params.append(limit)
@@ -647,20 +850,26 @@ def get_domain_tasks(assessment_id: int | None = None) -> List[sqlite3.Row]:
         return list(conn.execute(query, params).fetchall())
 
 
-def get_weekly_domain_practice() -> Dict[str, Dict[str, int]]:
+def get_weekly_domain_practice(child_profile_id: int | None = None) -> Dict[str, Dict[str, int]]:
+    child_id = _resolve_child_id(child_profile_id)
     today = date.today()
     days = [(today - timedelta(days=offset)).isoformat() for offset in range(6, -1, -1)]
     matrix = {day: {domain: 0 for domain in ["vci", "wmi", "psi", "fri", "vsi", "pa"]} for day in days}
     with connect() as conn:
-        rows = conn.execute(
-            """
+        query = """
             SELECT substr(a.date, 1, 10) AS day, dt.domain
             FROM domain_tasks dt
             JOIN assessments a ON a.id = dt.assessment_id
             WHERE date(a.date) >= date('now', '-6 days')
+        """
+        params: list[Any] = []
+        if child_id is not None:
+            query += " AND a.child_profile_id = ?"
+            params.append(child_id)
+        query += """
             GROUP BY day, dt.domain
-            """
-        ).fetchall()
+        """
+        rows = conn.execute(query, params).fetchall()
     for row in rows:
         day = row["day"]
         domain = row["domain"]
@@ -719,16 +928,18 @@ def log_reading_assessment(
     phonics_weak: List[str],
     comprehension_score: int,
     wpm_estimate: float,
+    child_profile_id: int | None = None,
 ) -> int:
+    child_id = _resolve_child_id(child_profile_id)
     with connect() as conn:
         cur = conn.execute(
             """
             INSERT INTO reading_assessments(
                 date, passage_id, passage_difficulty, accuracy_pct, reading_level,
                 error_types_json, phonics_strong_json, phonics_weak_json,
-                comprehension_score, wpm_estimate
+                comprehension_score, wpm_estimate, child_profile_id
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 now_iso(),
@@ -741,20 +952,25 @@ def log_reading_assessment(
                 json.dumps(phonics_weak),
                 int(comprehension_score),
                 float(wpm_estimate),
+                child_id,
             ),
         )
         conn.commit()
         return int(cur.lastrowid)
 
 
-def get_reading_assessments(limit: int | None = None) -> List[sqlite3.Row]:
+def get_reading_assessments(limit: int | None = None, child_profile_id: int | None = None) -> List[sqlite3.Row]:
+    child_id = _resolve_child_id(child_profile_id)
     query = """
         SELECT ra.*, p.text AS passage_text
         FROM reading_assessments ra
         LEFT JOIN passages p ON p.id = ra.passage_id
-        ORDER BY datetime(ra.date) DESC
     """
     params: list[Any] = []
+    if child_id is not None:
+        query += " WHERE ra.child_profile_id = ?"
+        params.append(child_id)
+    query += " ORDER BY datetime(ra.date) DESC"
     if limit:
         query += " LIMIT ?"
         params.append(limit)

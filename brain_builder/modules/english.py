@@ -190,3 +190,31 @@ def render() -> None:
                         st.rerun()
                     else:
                         _start(topic)
+
+
+def render() -> None:
+    st.markdown("# Reading Scrolls 📖")
+    gamify.adventure_header("Esther's Reading Scrolls", "📖", "Listen for sounds, find words, and understand kind stories.")
+    if st.session_state.get("english_topic") == "Read to Me":
+        reading_assessment.render("english")
+        if st.button("Back to reading scrolls"):
+            st.session_state.pop("english_topic", None)
+            st.rerun()
+        return
+
+    run = st.session_state.get("english_run")
+    if run:
+        _render_item(run)
+        return
+
+    styles.child_card("Pick a reading game. Tap, listen, and play.")
+    for row_start in range(0, len(SUBTOPICS), 2):
+        cols = st.columns(2)
+        for offset, topic in enumerate(SUBTOPICS[row_start : row_start + 2]):
+            with cols[offset]:
+                if st.button(topic, key=f"bible-english-topic-{topic}"):
+                    if topic == "Read to Me":
+                        st.session_state.english_topic = topic
+                        st.rerun()
+                    else:
+                        _start(topic)

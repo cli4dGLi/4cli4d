@@ -163,3 +163,20 @@ def render() -> None:
             with cols[offset]:
                 if st.button(subtopic, key=f"maths-topic-{subtopic}"):
                     _start(subtopic)
+
+
+def render() -> None:
+    st.markdown("# David's Numbers 🧮")
+    gamify.adventure_header("David's Number Songs", "🎵", "Count stones, sheep, and stars with careful thinking.")
+    run = st.session_state.get("maths_run")
+    if run:
+        _render_question(run)
+        return
+
+    styles.child_card("Pick a number game. Then tap the big answer buttons.")
+    for row_start in range(0, len(SUBTOPICS), 2):
+        cols = st.columns(2)
+        for offset, subtopic in enumerate(SUBTOPICS[row_start : row_start + 2]):
+            with cols[offset]:
+                if st.button(subtopic, key=f"bible-maths-topic-{subtopic}"):
+                    _start(subtopic)
