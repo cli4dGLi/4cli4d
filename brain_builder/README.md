@@ -24,7 +24,7 @@ streamlit run app.py
 
 ## Access control
 
-Brain Builder requires a grown-up login before any page opens. The admin username and password hash are read from Streamlit secrets or environment variables.
+Brain Builder requires a login before any page opens. The first admin account is bootstrapped from Streamlit secrets or environment variables, then the admin can create extra tablet users from the sidebar.
 
 Create a password hash from inside the `brain_builder` folder:
 
@@ -44,6 +44,13 @@ BRAIN_BUILDER_ADMIN_PASSWORD_HASH = "pbkdf2_sha256$260000$..."
 ```
 
 The app does not store or commit the plaintext password.
+
+After signing in as admin, open the sidebar and use **Admin: users** to:
+
+- create learner accounts for OB's tablet
+- set or reset passwords
+- make another grown-up an admin
+- deactivate users who should no longer have access
 
 ## Anthropic API key
 
