@@ -150,3 +150,20 @@ def render() -> None:
             with cols[offset]:
                 if st.button(subtopic, key=f"science-topic-{subtopic}"):
                     _start(subtopic)
+
+
+def render() -> None:
+    st.markdown("# Creation Lab 🔬")
+    gamify.adventure_header("Creation Lab", "🌍", "Explore nature, places, shapes, science facts, and history.")
+    run = st.session_state.get("science_run")
+    if run:
+        _render_item(run)
+        return
+
+    styles.child_card("Pick a wonder topic. Learn about creation, places, shapes, and history.")
+    for row_start in range(0, len(SUBTOPICS), 2):
+        cols = st.columns(2)
+        for offset, subtopic in enumerate(SUBTOPICS[row_start : row_start + 2]):
+            with cols[offset]:
+                if st.button(subtopic, key=f"creation-topic-{subtopic}"):
+                    _start(subtopic)

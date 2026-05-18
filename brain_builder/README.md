@@ -1,6 +1,6 @@
 # Brain Builder
 
-Brain Builder is a colourful Streamlit learning app for OB, age 5 years 3 months. It includes mental maths, English and reading, story word problems, Wonder Lab science/history, Puzzle Rescue mazes and logic games, progress tracking, a parent-only cognitive assessment centre, and a privacy-first voice reading assessment. The child-facing experience uses original Hero Academy and Rescue Pup-style mascots, without copyrighted characters or logos.
+Brain Builder is a colourful Streamlit learning app for young children. It includes mental maths, English and reading, Bible-story word problems, Creation Lab science/history, Wisdom Puzzles, progress tracking, a parent-only cognitive assessment centre, and a privacy-first voice reading assessment. The child-facing experience now uses original Bible-adventure companions inspired by David, Esther, Daniel, Ruth, Moses, and Miriam.
 
 ## Run locally
 
@@ -52,6 +52,18 @@ After signing in as admin, open the sidebar and use **Admin: users** to:
 - make another grown-up an admin
 - deactivate users who should no longer have access
 
+## Child profiles
+
+Several children can use the same app. After login, each child taps their name or adds a simple profile with:
+
+- name
+- age
+- date of birth
+
+Brain Builder uses the active child profile to separate scores, streaks, skill mastery, reading results, assessments, and daily learning plans. The age is used locally to tailor the development plan and daily exercises in real time. Child names and dates of birth are not sent to Claude for routine plan generation.
+
+Parents can deliberately allow deeper Claude personalization inside **Grown-Up Tent > Parent settings**. When approved, Brain Builder may send the active child's name, age, and date of birth to Claude so generated questions, reading content, and development plans can be tailored more closely. This setting is off by default and can be turned off again at any time.
+
 ## Anthropic API key
 
 The app never hardcodes the API key. Use either an environment variable:
@@ -69,9 +81,9 @@ ANTHROPIC_API_KEY = "sk-ant-your-key-here"
 
 If no key is set, Brain Builder uses the local fallback content in `assets/fallback_content.json`, so every module remains playable.
 
-## Wonder Lab topics
+## Creation Lab topics
 
-Wonder Lab adds playful five-question sessions for:
+Creation Lab adds playful five-question sessions for:
 
 - Natural Science
 - Physics
@@ -83,26 +95,26 @@ Wonder Lab adds playful five-question sessions for:
 
 Each question includes a short read-aloud fact after the answer.
 
-## Puzzle Rescue
+## Wisdom Puzzles
 
-Puzzle Rescue adds touch-friendly puzzle missions:
+Wisdom Puzzles adds touch-friendly puzzle quests:
 
 - Pattern Puzzles
 - Odd One Out
 - Memory Match
 - Maze Rescue
 
-Maze Rescue uses big arrow buttons to guide Rescue Pup through a grid maze.
+Maze Rescue uses big arrow buttons to guide the learner through a grid maze.
 
-## Daily Hero Training Engine
+## Daily Wisdom Journey Engine
 
 Brain Builder includes a lightweight adaptive learning engine for daily progress:
 
 - Tracks mastery for each skill after every completed session.
 - Uses spaced repetition dates so weaker or due skills come back sooner.
-- Builds a five-mission daily plan across maths, reading, word problems, science, and puzzles.
-- Marks daily missions complete automatically when OB finishes the matching module and subtopic.
-- Shows parents the lowest-mastery skills in **Hero Map** so daily practice stays focused.
+- Builds a five-quest daily plan across maths, reading, word problems, science, and puzzles.
+- Marks daily quests complete automatically when the child finishes the matching module and subtopic.
+- Shows parents the lowest-mastery skills in **Growth Garden** so daily practice stays focused.
 
 ## Deploy to Streamlit Cloud
 

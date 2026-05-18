@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import time
+from datetime import date
 
 import streamlit as st
 
@@ -13,7 +14,7 @@ from utils import styles
 
 st.set_page_config(
     page_title="Brain Builder",
-    page_icon="🌟",
+    page_icon="✨",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
@@ -24,13 +25,13 @@ styles.inject_global_css()
 
 PAGES = {
     "home": "Home",
-    "maths": "Mental Maths",
-    "english": "English & Reading",
-    "wordproblems": "Word Problems",
-    "science": "Wonder Lab",
-    "puzzles": "Puzzle Rescue",
-    "progress": "My Progress",
-    "assessment": "OB's Assessment Centre",
+    "maths": "David's Numbers",
+    "english": "Reading Scrolls",
+    "wordproblems": "Parable Problems",
+    "science": "Creation Lab",
+    "puzzles": "Wisdom Puzzles",
+    "progress": "Growth Garden",
+    "assessment": "Grown-up Tent",
 }
 
 
@@ -56,21 +57,73 @@ def _session_timeout() -> None:
     if now - last > 600:
         st.session_state.page = "home"
         _reset_active_runs()
-        st.warning("Welcome back! Let's start again from home. 🌟")
+        st.warning("Welcome back! Let's start again from home. ✨")
     st.session_state.last_activity = now
 
 
-def _confirm_child_name() -> bool:
-    if database.get_setting("child_name_confirmed", "false") == "true":
+def _age_from_birth_date(birth_date: date) -> int:
+    today = date.today()
+    years = today.year - birth_date.year
+    if (today.month, today.day) < (birth_date.month, birth_date.day):
+        years -= 1
+    return max(2, min(12, years))
+
+
+def _active_child_sidebar() -> None:
+    profile = database.get_child_profile()
+    if not profile:
+        return
+    with st.sidebar:
+        st.markdown(f"Learning as **{profile['name']}**")
+        if st.button("Switch learner"):
+            st.session_state.pop("active_child_id", None)
+            st.rerun()
+
+
+def _choose_child_profile() -> bool:
+    active = st.session_state.get("active_child_id")
+    if active and database.get_child_profile(int(active)):
+        _active_child_sidebar()
         return True
-    st.markdown("# Brain Builder 🌟")
-    st.markdown('<div class="brain-card friendly-text">Grown-up, please check the child name once.</div>', unsafe_allow_html=True)
-    name = st.text_input("Child name", value=database.get_setting("child_name", "OB") or "OB", max_chars=20)
-    if st.button("Save and start"):
-        clean = name.strip() or "OB"
-        database.set_setting("child_name", clean)
-        database.set_setting("child_name_confirmed", "true")
-        st.rerun()
+
+    st.markdown("# Who is learning today? ✨")
+    styles.child_card("Tap your name, or add your name to begin.")
+    profiles = [dict(row) for row in database.get_child_profiles()]
+    if profiles:
+        for row_start in range(0, len(profiles), 3):
+            cols = st.columns(3)
+            for offset, profile in enumerate(profiles[row_start : row_start + 3]):
+                with cols[offset]:
+                    label = f"{profile['name']}\nAge {profile['age_years'] or '?'}"
+                    if st.button(label, key=f"child-profile-{profile['id']}"):
+                        st.session_state.active_child_id = int(profile["id"])
+                        database.touch_child_profile(int(profile["id"]))
+                        st.rerun()
+
+    with st.expander("Add my name", expanded=not profiles):
+        name = st.text_input("My name", max_chars=60, key="new-child-name")
+        age = st.number_input("My age", min_value=2, max_value=12, value=5, step=1, key="new-child-age")
+        default_birth = date(max(2013, date.today().year - int(age)), 1, 1)
+        birth_date = st.date_input(
+            "My birthday",
+            value=default_birth,
+            min_value=date(2013, 1, 1),
+            max_value=date.today(),
+            key="new-child-dob",
+        )
+        if st.button("Start my Bible adventure"):
+            clean = name.strip()
+            if len(clean) < 2:
+                st.warning("Please type your name.")
+            else:
+                child_id = database.create_child_profile(
+                    clean,
+                    int(age) or _age_from_birth_date(birth_date),
+                    birth_date.isoformat(),
+                    st.session_state.get("auth_user"),
+                )
+                st.session_state.active_child_id = child_id
+                st.rerun()
     return False
 
 
@@ -80,21 +133,22 @@ def _go(page: str) -> None:
 
 
 def _home() -> None:
-    child_name = database.get_setting("child_name", "OB") or "OB"
-    st.markdown(f"# Hello {child_name}! Ready to play? 🌟")
+    profile = database.get_child_profile()
+    child_name = profile["name"] if profile else "friend"
+    st.markdown(f"# Hello {child_name}! Ready for a Bible adventure? ✨")
     gamify.player_hud()
-    gamify.mascot_banner("Captain Spark, Book Shield, Lab Hero, Puzzle Bot, and Rescue Pup have missions for you.")
-    styles.child_card("Pick a hero mission. Win power points. Fill your hero meter.")
+    gamify.mascot_banner("David, Esther, Daniel, Ruth, Moses, and Miriam have joyful learning quests for you.")
+    styles.child_card("Pick a wisdom quest. Earn stars. Grow your learning garden.")
     gamify.daily_training_card()
 
     modules = [
-        ("NUMBER HERO 🧮", "maths"),
-        ("READING HERO 📖", "english"),
-        ("STORY RESCUE 📚", "wordproblems"),
-        ("SUPER SCIENCE 🔬", "science"),
-        ("PUZZLE RESCUE 🧩", "puzzles"),
-        ("HERO MAP 🌟", "progress"),
-        ("GROWN-UP BASE 🔐", "assessment"),
+        ("DAVID'S NUMBERS 🧮", "maths"),
+        ("READING SCROLLS 📖", "english"),
+        ("PARABLE PROBLEMS 📚", "wordproblems"),
+        ("CREATION LAB 🔬", "science"),
+        ("WISDOM PUZZLES 🧩", "puzzles"),
+        ("GROWTH GARDEN 🌟", "progress"),
+        ("GROWN-UP TENT 🔐", "assessment"),
     ]
     for row_start in range(0, len(modules), 2):
         cols = st.columns(2)
@@ -138,7 +192,7 @@ def main() -> None:
     if not auth.require_login():
         return
     _session_timeout()
-    if not _confirm_child_name():
+    if not _choose_child_profile():
         return
     page = st.session_state.get("page", "home")
     _render_page(page)
