@@ -89,7 +89,7 @@ def _parent_results(result: Dict[str, Any]) -> None:
 
 def render(context_key: str = "english") -> None:
     st.markdown("## Read to Me 🎙️")
-    gamify.adventure_header("Read-Aloud Stage", "🎙️", "Book Buddy listens for brave reading.")
+    gamify.adventure_header("Read-Aloud Stage", "🎙️", "Book Shield listens for brave reading.")
     if not _pin_gate_for_notice():
         return
 

@@ -270,7 +270,7 @@ def render() -> None:
     if not _pin_gate():
         return
     st.markdown("# OB's Assessment Centre 🧠")
-    gamify.adventure_header("Grown-Up Base", "🔐", "Playful checks for memory, speed, words, shapes, and thinking.")
+    gamify.adventure_header("Grown-Up Hero Base", "🔐", "Playful checks for memory, speed, words, shapes, and thinking.")
     _settings_panel()
     tab_run, tab_dash, tab_insights, tab_reading = st.tabs(
         ["A) Run Assessment", "B) Intelligence Dashboard", "C) AI Insights & Roadmap", "Read to Me"]

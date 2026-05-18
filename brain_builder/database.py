@@ -233,10 +233,10 @@ def _module_average(module: str, limit: int | None = None) -> tuple[int, float]:
 
 def check_award_badges() -> None:
     rules = [
-        ("maths", 10, 0.80, "Maths Wizard"),
-        ("english", 10, 0.80, "Word Champion"),
-        ("wordproblems", 5, 0.80, "Story Solver"),
-        ("science", 10, 0.80, "Wonder Explorer"),
+        ("maths", 10, 0.80, "Number Hero"),
+        ("english", 10, 0.80, "Reading Hero"),
+        ("wordproblems", 5, 0.80, "Story Rescue Hero"),
+        ("science", 10, 0.80, "Super Scientist"),
     ]
     today = date.today().isoformat()
     with connect() as conn:

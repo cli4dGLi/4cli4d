@@ -82,7 +82,7 @@ def _finish(run: Dict[str, Any]) -> None:
     st.markdown("## Wonder Lab complete!")
     gamify.reward_chest(stars, run["score"], 5)
     st.markdown(styles.stars_html(stars), unsafe_allow_html=True)
-    styles.child_card(f"You got {run['score']} out of 5. Curious thinking! 🌟")
+    styles.child_card(f"You powered up {run['score']} out of 5 discoveries. Super scientist! 🌟")
     if st.button("Explore again"):
         st.session_state.pop("science_run", None)
         st.rerun()
@@ -137,7 +137,7 @@ def _render_item(run: Dict[str, Any]) -> None:
 
 def render() -> None:
     st.markdown("# Wonder Lab 🔬")
-    gamify.adventure_header("Wonder Lab", "🔬", "Drip the Scientist has facts, places, shapes, and history to discover.")
+    gamify.adventure_header("Super Science Lab", "🔬", "Lab Hero has facts, places, shapes, and history to discover.")
     run = st.session_state.get("science_run")
     if run:
         _render_item(run)

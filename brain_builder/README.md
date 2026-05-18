@@ -1,6 +1,6 @@
 # Brain Builder
 
-Brain Builder is a colourful Streamlit learning app for OB, age 5 years 3 months. It includes mental maths, English and reading, story word problems, Wonder Lab science/history, progress tracking, a parent-only cognitive assessment centre, and a privacy-first voice reading assessment.
+Brain Builder is a colourful Streamlit learning app for OB, age 5 years 3 months. It includes mental maths, English and reading, story word problems, Wonder Lab science/history, progress tracking, a parent-only cognitive assessment centre, and a privacy-first voice reading assessment. The child-facing experience uses original Hero Academy and Rescue Pup-style mascots, without copyrighted characters or logos.
 
 ## Run locally
 

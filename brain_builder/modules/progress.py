@@ -69,11 +69,11 @@ def _parent_summary() -> None:
 
 
 def render() -> None:
-    st.markdown("# Treasure Map 🌟")
-    gamify.adventure_header("Treasure Map", "🗺️", "See your star coins, badges, and learning trails.")
+    st.markdown("# Hero Map 🌟")
+    gamify.adventure_header("Hero Map", "🗺️", "See your hero points, badges, and learning trails.")
     gamify.player_hud()
     c1, c2, c3 = st.columns(3)
-    c1.metric("Stars", database.get_total_stars())
+    c1.metric("Hero points", database.get_total_stars())
     c2.metric("Day streak", database.get_current_streak())
     c3.metric("Goal", "2 modules today")
 

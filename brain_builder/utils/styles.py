@@ -197,7 +197,7 @@ def inject_global_css() -> None:
         .level-fill {
             height: 100%;
             border-radius: 999px;
-            background: linear-gradient(90deg, #66BB6A, #42A5F5, #AB47BC);
+            background: linear-gradient(90deg, #EF5350, #42A5F5, #FFD54F, #66BB6A);
         }
 
         .adventure-header {
@@ -205,8 +205,8 @@ def inject_global_css() -> None:
             grid-template-columns: 88px 1fr;
             gap: 16px;
             align-items: center;
-            background: rgba(255, 255, 255, 0.9);
-            border: 3px solid #FFD54F;
+            background: linear-gradient(135deg, rgba(255,255,255,0.94), rgba(227,242,253,0.92));
+            border: 3px solid #42A5F5;
             border-radius: 24px;
             padding: 1rem;
             margin: 0.75rem 0 1rem;
@@ -219,7 +219,7 @@ def inject_global_css() -> None:
             display: grid;
             place-items: center;
             border-radius: 999px;
-            background: radial-gradient(circle, #FFFFFF, #FFE082);
+            background: radial-gradient(circle, #FFFFFF, #FFEB3B 48%, #EF5350);
             font-size: 44px;
             box-shadow: inset 0 0 0 3px rgba(255,255,255,0.8);
         }
@@ -238,7 +238,7 @@ def inject_global_css() -> None:
 
         .mission-card {
             background: rgba(255, 255, 255, 0.9);
-            border: 3px solid #A5D6A7;
+            border: 3px solid #42A5F5;
             border-radius: 22px;
             padding: 1rem;
             margin: 0.75rem 0;
@@ -248,8 +248,8 @@ def inject_global_css() -> None:
             display: flex;
             justify-content: space-between;
             gap: 12px;
-            background: #E1F5FE;
-            border: 3px solid #4FC3F7;
+            background: #E3F2FD;
+            border: 3px solid #42A5F5;
             border-radius: 18px;
             padding: 0.75rem 1rem;
             font-size: 20px;
