@@ -135,6 +135,18 @@ def init_db() -> None:
                 created_at TEXT,
                 UNIQUE(plan_date, module, subtopic)
             );
+
+            CREATE TABLE IF NOT EXISTS app_users (
+                id INTEGER PRIMARY KEY,
+                username TEXT UNIQUE NOT NULL,
+                display_name TEXT,
+                password_hash TEXT NOT NULL,
+                role TEXT NOT NULL DEFAULT 'learner',
+                is_active INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT,
+                updated_at TEXT,
+                last_login_at TEXT
+            );
             """
         )
         for key, value in DEFAULT_SETTINGS.items():
@@ -167,6 +179,98 @@ def get_parent_pin() -> str:
 
 def set_parent_pin(pin: str) -> None:
     set_setting("parent_pin", pin)
+
+
+def normalize_username(username: str) -> str:
+    return username.strip().lower()
+
+
+def get_app_user(username: str) -> sqlite3.Row | None:
+    clean = normalize_username(username)
+    with connect() as conn:
+        return conn.execute("SELECT * FROM app_users WHERE username = ?", (clean,)).fetchone()
+
+
+def list_app_users() -> List[sqlite3.Row]:
+    with connect() as conn:
+        return list(conn.execute("SELECT * FROM app_users ORDER BY role ASC, username ASC").fetchall())
+
+
+def upsert_app_user(
+    username: str,
+    password_hash: str,
+    role: str = "learner",
+    display_name: str | None = None,
+    is_active: bool = True,
+) -> None:
+    clean = normalize_username(username)
+    safe_role = role if role in {"admin", "learner"} else "learner"
+    now = now_iso()
+    with connect() as conn:
+        conn.execute(
+            """
+            INSERT INTO app_users(username, display_name, password_hash, role, is_active, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(username) DO UPDATE SET
+                display_name = COALESCE(excluded.display_name, app_users.display_name),
+                password_hash = excluded.password_hash,
+                role = excluded.role,
+                is_active = excluded.is_active,
+                updated_at = excluded.updated_at
+            """,
+            (clean, display_name or clean, password_hash, safe_role, int(is_active), now, now),
+        )
+        conn.commit()
+
+
+def create_app_user(username: str, display_name: str, password_hash: str, role: str = "learner") -> None:
+    clean = normalize_username(username)
+    safe_role = role if role in {"admin", "learner"} else "learner"
+    now = now_iso()
+    with connect() as conn:
+        conn.execute(
+            """
+            INSERT INTO app_users(username, display_name, password_hash, role, is_active, created_at, updated_at)
+            VALUES (?, ?, ?, ?, 1, ?, ?)
+            """,
+            (clean, display_name.strip() or clean, password_hash, safe_role, now, now),
+        )
+        conn.commit()
+
+
+def update_app_user(
+    username: str,
+    display_name: str | None = None,
+    password_hash: str | None = None,
+    role: str | None = None,
+    is_active: bool | None = None,
+) -> None:
+    clean = normalize_username(username)
+    assignments = ["updated_at = ?"]
+    params: list[Any] = [now_iso()]
+    if display_name is not None:
+        assignments.append("display_name = ?")
+        params.append(display_name.strip() or clean)
+    if password_hash is not None:
+        assignments.append("password_hash = ?")
+        params.append(password_hash)
+    if role is not None:
+        assignments.append("role = ?")
+        params.append(role if role in {"admin", "learner"} else "learner")
+    if is_active is not None:
+        assignments.append("is_active = ?")
+        params.append(int(is_active))
+    params.append(clean)
+    with connect() as conn:
+        conn.execute(f"UPDATE app_users SET {', '.join(assignments)} WHERE username = ?", params)
+        conn.commit()
+
+
+def record_user_login(username: str) -> None:
+    clean = normalize_username(username)
+    with connect() as conn:
+        conn.execute("UPDATE app_users SET last_login_at = ? WHERE username = ?", (now_iso(), clean))
+        conn.commit()
 
 
 def get_difficulty(module: str) -> int:
