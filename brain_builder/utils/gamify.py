@@ -5,6 +5,7 @@ from pathlib import Path
 import streamlit as st
 
 import database
+from utils import learning_engine
 
 
 BASE_DIR = Path(__file__).resolve().parents[1]
@@ -19,6 +20,36 @@ def mascot_banner(caption: str = "Your hero team is ready!") -> None:
         <div class="mission-card">
             <div class="mission-title">Hero Academy</div>
             <div class="mission-text">{caption}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def daily_training_card() -> None:
+    plan = learning_engine.build_daily_plan()
+    summary = learning_engine.daily_plan_summary()
+    rows = []
+    for item in plan:
+        status = "✅" if item.get("status") == "done" else "⚡"
+        module = learning_engine.MODULE_LABELS.get(item["module"], item["module"].title())
+        rows.append(
+            f"""
+            <div class="training-item">
+                <div class="training-status">{status}</div>
+                <div>
+                    <div class="training-title">{item['title']}</div>
+                    <div class="training-reason">{module}: {item['subtopic']} · {item['reason']}</div>
+                </div>
+            </div>
+            """
+        )
+    st.markdown(
+        f"""
+        <div class="training-card">
+            <div class="mission-title">Today's Hero Training</div>
+            <div class="mission-text">{summary['done']} done · {summary['left']} to go</div>
+            {''.join(rows)}
         </div>
         """,
         unsafe_allow_html=True,

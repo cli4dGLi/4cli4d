@@ -355,6 +355,50 @@ def inject_global_css() -> None:
             border-color: #EC407A;
         }
 
+        .training-card {
+            background: linear-gradient(135deg, #FFFFFF 0%, #E8F5E9 100%);
+            border: 4px solid #66BB6A;
+            border-radius: 24px;
+            padding: 1rem;
+            margin: 1rem 0;
+            box-shadow: 0 10px 24px rgba(39, 54, 74, 0.1);
+        }
+
+        .training-item {
+            display: grid;
+            grid-template-columns: 52px 1fr;
+            gap: 12px;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.82);
+            border: 2px solid rgba(102, 187, 106, 0.5);
+            border-radius: 18px;
+            padding: 0.75rem;
+            margin-top: 0.65rem;
+        }
+
+        .training-status {
+            width: 44px;
+            height: 44px;
+            display: grid;
+            place-items: center;
+            border-radius: 999px;
+            background: #FFF9C4;
+            font-size: 24px;
+        }
+
+        .training-title {
+            font-size: 21px;
+            font-weight: 900;
+            line-height: 1.15;
+        }
+
+        .training-reason {
+            font-size: 16px;
+            font-weight: 800;
+            line-height: 1.25;
+            color: #4B5563;
+        }
+
         @media (max-width: 700px) {
             .hud {
                 grid-template-columns: 1fr;
