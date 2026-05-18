@@ -64,6 +64,16 @@ Puzzle Rescue adds touch-friendly puzzle missions:
 
 Maze Rescue uses big arrow buttons to guide Rescue Pup through a grid maze.
 
+## Daily Hero Training Engine
+
+Brain Builder includes a lightweight adaptive learning engine for daily progress:
+
+- Tracks mastery for each skill after every completed session.
+- Uses spaced repetition dates so weaker or due skills come back sooner.
+- Builds a five-mission daily plan across maths, reading, word problems, science, and puzzles.
+- Marks daily missions complete automatically when OB finishes the matching module and subtopic.
+- Shows parents the lowest-mastery skills in **Hero Map** so daily practice stays focused.
+
 ## Deploy to Streamlit Cloud
 
 1. Push the `brain_builder` folder to a GitHub repository.

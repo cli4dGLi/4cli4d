@@ -84,6 +84,7 @@ def _home() -> None:
     gamify.player_hud()
     gamify.mascot_banner("Captain Spark, Book Shield, Lab Hero, Puzzle Bot, and Rescue Pup have missions for you.")
     styles.child_card("Pick a hero mission. Win power points. Fill your hero meter.")
+    gamify.daily_training_card()
 
     modules = [
         ("NUMBER HERO 🧮", "maths"),

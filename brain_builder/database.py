@@ -106,6 +106,35 @@ def init_db() -> None:
                 word_count INTEGER,
                 target_phonics TEXT
             );
+
+            CREATE TABLE IF NOT EXISTS skill_mastery (
+                skill_key TEXT PRIMARY KEY,
+                module TEXT,
+                subtopic TEXT,
+                display_name TEXT,
+                mastery REAL,
+                attempts INTEGER,
+                correct_total INTEGER,
+                total_questions INTEGER,
+                avg_response_ms INTEGER,
+                streak INTEGER,
+                last_score INTEGER,
+                last_practiced TEXT,
+                next_due_date TEXT
+            );
+
+            CREATE TABLE IF NOT EXISTS daily_plans (
+                id INTEGER PRIMARY KEY,
+                plan_date TEXT,
+                position INTEGER,
+                module TEXT,
+                subtopic TEXT,
+                title TEXT,
+                reason TEXT,
+                status TEXT DEFAULT 'planned',
+                created_at TEXT,
+                UNIQUE(plan_date, module, subtopic)
+            );
             """
         )
         for key, value in DEFAULT_SETTINGS.items():
@@ -153,18 +182,164 @@ def set_difficulty(module: str, level: int) -> None:
 
 
 def log_session(module: str, subtopic: str, score: int, stars: int, difficulty_level: int) -> int:
+    timestamp = now_iso()
     with connect() as conn:
         cur = conn.execute(
             """
             INSERT INTO sessions(module, subtopic, score, stars, difficulty_level, timestamp)
             VALUES (?, ?, ?, ?, ?, ?)
             """,
-            (module, subtopic, int(score), int(stars), int(difficulty_level), now_iso()),
+            (module, subtopic, int(score), int(stars), int(difficulty_level), timestamp),
         )
         conn.commit()
         session_id = int(cur.lastrowid)
+    update_skill_mastery(module, subtopic, score, 5)
+    mark_daily_plan_done(module, subtopic)
     check_award_badges()
     return session_id
+
+
+def skill_key(module: str, subtopic: str) -> str:
+    safe = "".join(ch.lower() if ch.isalnum() else "-" for ch in f"{module}:{subtopic}")
+    while "--" in safe:
+        safe = safe.replace("--", "-")
+    return safe.strip("-")
+
+
+def update_skill_mastery(
+    module: str,
+    subtopic: str,
+    score: int,
+    total_questions: int = 5,
+    avg_response_ms: int | None = None,
+) -> None:
+    key = skill_key(module, subtopic)
+    today = date.today()
+    accuracy = max(0.0, min(1.0, int(score) / max(1, int(total_questions))))
+    with connect() as conn:
+        row = conn.execute("SELECT * FROM skill_mastery WHERE skill_key = ?", (key,)).fetchone()
+        if row:
+            old_mastery = float(row["mastery"] or 0.35)
+            attempts = int(row["attempts"] or 0) + 1
+            correct_total = int(row["correct_total"] or 0) + int(score)
+            total = int(row["total_questions"] or 0) + int(total_questions)
+            streak = int(row["streak"] or 0) + 1 if accuracy >= 0.8 else 0
+            old_avg = int(row["avg_response_ms"] or 0)
+        else:
+            old_mastery = 0.35
+            attempts = 1
+            correct_total = int(score)
+            total = int(total_questions)
+            streak = 1 if accuracy >= 0.8 else 0
+            old_avg = 0
+
+        new_mastery = round(max(0.05, min(0.99, (old_mastery * 0.68) + (accuracy * 0.32))), 3)
+        if accuracy >= 0.9:
+            gap_days = 4
+        elif accuracy >= 0.7:
+            gap_days = 2
+        elif accuracy >= 0.5:
+            gap_days = 1
+        else:
+            gap_days = 0
+        due = (today + timedelta(days=gap_days)).isoformat()
+        if avg_response_ms:
+            avg_ms = int((old_avg * 0.7) + (int(avg_response_ms) * 0.3)) if old_avg else int(avg_response_ms)
+        else:
+            avg_ms = old_avg
+
+        conn.execute(
+            """
+            INSERT INTO skill_mastery(
+                skill_key, module, subtopic, display_name, mastery, attempts,
+                correct_total, total_questions, avg_response_ms, streak,
+                last_score, last_practiced, next_due_date
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(skill_key) DO UPDATE SET
+                module = excluded.module,
+                subtopic = excluded.subtopic,
+                display_name = excluded.display_name,
+                mastery = excluded.mastery,
+                attempts = excluded.attempts,
+                correct_total = excluded.correct_total,
+                total_questions = excluded.total_questions,
+                avg_response_ms = excluded.avg_response_ms,
+                streak = excluded.streak,
+                last_score = excluded.last_score,
+                last_practiced = excluded.last_practiced,
+                next_due_date = excluded.next_due_date
+            """,
+            (
+                key,
+                module,
+                subtopic,
+                subtopic,
+                new_mastery,
+                attempts,
+                correct_total,
+                total,
+                avg_ms,
+                streak,
+                int(score),
+                today.isoformat(),
+                due,
+            ),
+        )
+        conn.commit()
+
+
+def get_skill_mastery_rows() -> List[sqlite3.Row]:
+    with connect() as conn:
+        return list(conn.execute("SELECT * FROM skill_mastery ORDER BY mastery ASC, next_due_date ASC").fetchall())
+
+
+def get_daily_plan(plan_date: str | None = None) -> List[sqlite3.Row]:
+    day = plan_date or date.today().isoformat()
+    with connect() as conn:
+        return list(
+            conn.execute(
+                "SELECT * FROM daily_plans WHERE plan_date = ? ORDER BY position ASC",
+                (day,),
+            ).fetchall()
+        )
+
+
+def save_daily_plan(items: Iterable[Dict[str, Any]], plan_date: str | None = None) -> None:
+    day = plan_date or date.today().isoformat()
+    with connect() as conn:
+        conn.execute("DELETE FROM daily_plans WHERE plan_date = ?", (day,))
+        for index, item in enumerate(items, 1):
+            conn.execute(
+                """
+                INSERT INTO daily_plans(plan_date, position, module, subtopic, title, reason, status, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, 'planned', ?)
+                """,
+                (
+                    day,
+                    index,
+                    item["module"],
+                    item["subtopic"],
+                    item["title"],
+                    item["reason"],
+                    now_iso(),
+                ),
+            )
+        conn.commit()
+
+
+def mark_daily_plan_done(module: str, subtopic: str, plan_date: str | None = None) -> None:
+    day = plan_date or date.today().isoformat()
+    with connect() as conn:
+        conn.execute(
+            """
+            UPDATE daily_plans
+            SET status = 'done'
+            WHERE plan_date = ? AND module = ? AND subtopic = ?
+            """,
+            (day, module, subtopic),
+        )
+        conn.commit()
 
 
 def adapt_difficulty(module: str, score: int) -> int:

@@ -5,6 +5,7 @@ import plotly.graph_objects as go
 
 import database
 from utils import gamify
+from utils import learning_engine
 from utils import styles
 
 
@@ -76,6 +77,25 @@ def render() -> None:
     c1.metric("Hero points", database.get_total_stars())
     c2.metric("Day streak", database.get_current_streak())
     c3.metric("Goal", "2 modules today")
+
+    st.markdown("## Daily Hero Training")
+    gamify.daily_training_card()
+    snapshot = learning_engine.mastery_snapshot()
+    if snapshot:
+        st.markdown("## Skills to grow")
+        st.dataframe(
+            [
+                {
+                    "Skill": row["display_name"],
+                    "Module": learning_engine.MODULE_LABELS.get(row["module"], row["module"].title()),
+                    "Mastery": f"{row['mastery_pct']}%",
+                    "Due": row["next_due_date"],
+                    "Attempts": row["attempts"],
+                }
+                for row in snapshot
+            ],
+            use_container_width=True,
+        )
 
     st.markdown("## Last games")
     _scores_chart()
