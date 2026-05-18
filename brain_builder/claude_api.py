@@ -178,7 +178,8 @@ def generate_maths_questions(subtopic: str, level: int) -> List[Dict[str, Any]]:
         "language), 'options' (array of 4 strings), 'answer' (string matching one option), "
         "'emoji' (a fun related emoji). Difficulty level: {level} where 1=easiest, 5=hardest. "
         "Current subtopic: {subtopic}. Return ONLY a valid JSON array, no markdown, no "
-        "explanation."
+        "explanation. Each question must be a complete, clear sentence with enough context "
+        "for a young child to understand, answer, and be assessed."
     ).format(level=level, subtopic=subtopic)
     return _call_json(
         system,
@@ -194,7 +195,8 @@ def generate_english_items(task_type: str) -> List[Dict[str, Any]]:
         "For task type '{task_type}', generate 5 items. Each item: 'prompt' (what to show "
         "child), 'options' (4 choices as strings), 'answer' (correct string), 'hint' "
         "(one simple word hint). Use only simple CVC words and common sight words. "
-        "Return ONLY a valid JSON array, no markdown."
+        "Return ONLY a valid JSON array, no markdown. Prompts must use complete, clear "
+        "sentences with enough context for the child to understand, respond, and be assessed."
     ).format(task_type=task_type)
     user = (
         "If task_type is sentence builder, make options the shuffled words and answer the full sentence. "
@@ -215,7 +217,8 @@ def generate_word_problems(level: int = 1) -> List[Dict[str, Any]]:
         "settings (market, school, home, farm), and real objects (fruits, balls, books). "
         "Each item: 'story' (2 sentences max, under 25 words), 'question' (1 short "
         "question), 'options' (4 number strings), 'answer' (correct string), 'emojis' "
-        "(2-3 relevant emojis). Return ONLY a valid JSON array, no markdown."
+        "(2-3 relevant emojis). Return ONLY a valid JSON array, no markdown. The story and "
+        "question must be complete, clear, and self-contained enough to answer."
     )
     return _call_json(
         system,
@@ -234,7 +237,8 @@ def generate_science_items(subtopic: str, level: int) -> List[Dict[str, Any]]:
         "'emoji' (one fun related emoji), and 'kind' ('science', 'geography', 'geometry', or 'history'). "
         f"Difficulty level: {level} where 1=easiest and 5=hardest. Current subtopic: {subtopic}. "
         "For history, use safe, age-kind facts about people, places, inventions, culture, and long-ago life. "
-        "Return ONLY a valid JSON array, no markdown, no explanation."
+        "Return ONLY a valid JSON array, no markdown, no explanation. Prompts and facts must be "
+        "complete, clear sentences with enough context for the child to understand and respond."
     )
     return _call_json(
         system,
@@ -257,7 +261,8 @@ def generate_assessment_tasks(domain: str, count: int, difficulty: int) -> List[
         "Each item must have 'prompt', 'options' as 4 short strings, 'answer' matching one option, "
         "'hint', 'visual', and 'task_type'. Use simple words, Ghana-friendly contexts, and emojis. "
         f"Domain: {domain_names.get(domain, domain)}. Difficulty 1-5: {difficulty}. "
-        f"Generate exactly {count} items. Return ONLY a valid JSON array."
+        f"Generate exactly {count} items. Return ONLY a valid JSON array. Each prompt must be a "
+        "complete, clear sentence with enough context to understand, answer, and assess."
     )
     return _call_json(
         system,
@@ -363,7 +368,9 @@ def generate_passage_library() -> List[Dict[str, Any]]:
         "10 starter, 10 developing, and 10 fluent. Each item must have 'difficulty', 'text', "
         "and 'target_phonics'. Starter passages are 1 sentence and 5-8 common words. "
         "Developing passages are 2-3 sentences and 15-25 words. Fluent passages are 40-60 words. "
-        "Use familiar contexts like market, family, school, animals, and food. Return ONLY a valid JSON array."
+        "Use familiar contexts like market, family, school, animals, and food. Every passage must "
+        "be a complete, meaningful mini-story that supports a simple comprehension question. "
+        "Return ONLY a valid JSON array."
     )
     return _call_json(
         system,
