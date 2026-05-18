@@ -22,6 +22,29 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
+## Access control
+
+Brain Builder requires a grown-up login before any page opens. The admin username and password hash are read from Streamlit secrets or environment variables.
+
+Create a password hash from inside the `brain_builder` folder:
+
+```powershell
+@'
+from getpass import getpass
+from utils.auth import hash_password
+print(hash_password(getpass("Admin password: ")))
+'@ | python -
+```
+
+Then set these secrets locally or in Streamlit Cloud:
+
+```toml
+BRAIN_BUILDER_ADMIN_USERNAME = "clifford"
+BRAIN_BUILDER_ADMIN_PASSWORD_HASH = "pbkdf2_sha256$260000$..."
+```
+
+The app does not store or commit the plaintext password.
+
 ## Anthropic API key
 
 The app never hardcodes the API key. Use either an environment variable:
