@@ -26,7 +26,16 @@ streamlit run app.py
 
 Brain Builder requires a login before any page opens. The first admin account is bootstrapped from Streamlit secrets or environment variables, then the admin can create extra tablet users from the sidebar.
 
-Create a password hash from inside the `brain_builder` folder:
+For the first cloud login, set:
+
+```toml
+BRAIN_BUILDER_ADMIN_USERNAME = "clifford"
+BRAIN_BUILDER_ADMIN_PASSWORD = "your-admin-password"
+```
+
+Then reboot the app and sign in with that username and password.
+
+If you prefer not to store the plain password in Streamlit secrets, create a password hash from inside the `brain_builder` folder:
 
 ```powershell
 @'
@@ -36,14 +45,14 @@ print(hash_password(getpass("Admin password: ")))
 '@ | python -
 ```
 
-Then set these secrets locally or in Streamlit Cloud:
+Then set these secrets locally or in Streamlit Cloud instead:
 
 ```toml
 BRAIN_BUILDER_ADMIN_USERNAME = "clifford"
 BRAIN_BUILDER_ADMIN_PASSWORD_HASH = "pbkdf2_sha256$260000$..."
 ```
 
-The app does not store or commit the plaintext password.
+The app hashes the password before saving it in SQLite. Do not commit real secrets.
 
 After signing in as admin, open the sidebar and use **Admin: users** to:
 
@@ -79,6 +88,8 @@ Or create `.streamlit/secrets.toml`:
 
 ```toml
 ANTHROPIC_API_KEY = "sk-ant-your-key-here"
+BRAIN_BUILDER_ADMIN_USERNAME = "clifford"
+BRAIN_BUILDER_ADMIN_PASSWORD = "your-admin-password"
 ```
 
 If no key is set, Brain Builder uses the local fallback content in `assets/fallback_content.json`, so every module remains playable.
@@ -128,6 +139,8 @@ Brain Builder includes a lightweight adaptive learning engine for daily progress
 
 ```toml
 ANTHROPIC_API_KEY = "sk-ant-your-key-here"
+BRAIN_BUILDER_ADMIN_USERNAME = "clifford"
+BRAIN_BUILDER_ADMIN_PASSWORD = "your-admin-password"
 ```
 
 6. Deploy.

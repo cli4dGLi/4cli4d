@@ -66,7 +66,7 @@ def _finish(run: Dict[str, Any]) -> None:
     st.markdown("## Story maths complete!")
     gamify.reward_chest(stars, run["score"], 5)
     st.markdown(styles.stars_html(stars), unsafe_allow_html=True)
-    styles.child_card(f"You rescued {run['score']} out of 5 story clues! Well done, hero! 🌟")
+    styles.child_card(f"You solved {run['score']} out of 5 story clues! Well done, wise thinker! 🌟")
     if st.button("Play story maths again"):
         st.session_state.pop("word_run", None)
         st.rerun()
@@ -85,7 +85,7 @@ def _feedback(run: Dict[str, Any]) -> None:
         """,
         unsafe_allow_html=True,
     )
-    gamify.helper_tip("Rescue Pup says story clues help heroes choose.", "🐶")
+    gamify.helper_tip("Miriam says story clues help wise thinkers choose.", "🧺")
     if st.button("Next story"):
         run["idx"] += 1
         run["feedback"] = None
@@ -117,7 +117,7 @@ def _render_problem(run: Dict[str, Any]) -> None:
 
 def render() -> None:
     st.markdown("# Word Problems 📚")
-    gamify.adventure_header("Story Rescue", "🐶", "Team up with Rescue Pup to solve tiny story missions.")
+    gamify.adventure_header("Bible Story Maths", "🧺", "Solve gentle stories with baskets, scrolls, sheep, bread, and stars.")
     run = st.session_state.get("word_run")
     if run:
         _render_problem(run)

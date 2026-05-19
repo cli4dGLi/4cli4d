@@ -79,10 +79,10 @@ def _finish(run: Dict[str, Any]) -> None:
         database.log_session("science", run["subtopic"], run["score"], stars, run["level"])
         database.adapt_difficulty("science", run["score"])
         run["logged"] = True
-    st.markdown("## Wonder Lab complete!")
+    st.markdown("## Creation Lab complete!")
     gamify.reward_chest(stars, run["score"], 5)
     st.markdown(styles.stars_html(stars), unsafe_allow_html=True)
-    styles.child_card(f"You powered up {run['score']} out of 5 discoveries. Super scientist! 🌟")
+    styles.child_card(f"You found {run['score']} out of 5 discoveries. Wise explorer! 🌟")
     if st.button("Explore again"):
         st.session_state.pop("science_run", None)
         st.rerun()
@@ -136,8 +136,8 @@ def _render_item(run: Dict[str, Any]) -> None:
 
 
 def render() -> None:
-    st.markdown("# Wonder Lab 🔬")
-    gamify.adventure_header("Super Science Lab", "🔬", "Lab Hero has facts, places, shapes, and history to discover.")
+    st.markdown("# Creation Lab 🔬")
+    gamify.adventure_header("Creation Lab", "🌍", "Explore nature, places, shapes, science facts, and history.")
     run = st.session_state.get("science_run")
     if run:
         _render_item(run)

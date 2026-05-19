@@ -66,7 +66,7 @@ def _finish(run: Dict[str, Any]) -> None:
         new_level = database.adapt_difficulty("maths", run["score"])
         run["new_level"] = new_level
         run["logged"] = True
-    st.markdown("## Super maths!")
+    st.markdown("## Number song complete!")
     gamify.reward_chest(stars, run["score"], 5)
     st.markdown(styles.stars_html(stars), unsafe_allow_html=True)
     st.markdown(f'<div class="brain-card friendly-text">You solved {run["score"]} out of 5. Brilliant trying! 🌟</div>', unsafe_allow_html=True)
@@ -91,7 +91,7 @@ def _show_feedback(run: Dict[str, Any]) -> None:
         """,
         unsafe_allow_html=True,
     )
-    gamify.helper_tip(feedback.get("fact", "Keep going, Number Hero!"), "🧮")
+    gamify.helper_tip(feedback.get("fact", "Keep going, careful counter!"), "🧮")
     if st.button("Next question"):
         run["idx"] += 1
         run["feedback"] = None
@@ -150,7 +150,7 @@ def _render_question(run: Dict[str, Any]) -> None:
 
 def render() -> None:
     st.markdown("# Mental Maths 🧮")
-    gamify.adventure_header("Number Hero Mission", "⚡", "Help Captain Spark power up Number City.")
+    gamify.adventure_header("David's Number Songs", "🎵", "Count stones, sheep, and stars with careful thinking.")
     run = st.session_state.get("maths_run")
     if run:
         _render_question(run)
