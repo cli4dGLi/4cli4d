@@ -116,7 +116,7 @@ def render(context_key: str = "english") -> None:
         st.markdown("### One little question")
         styles.speech_bubble(question)
         read_button(question, key=f"{context_key}-comp-read")
-        value = speech_recognizer(key=f"{context_key}-comp-mic", seconds=15, prompt="Answer the question.")
+        value = speech_recognizer(key=f"{context_key}-comp-mic", seconds=30, prompt="Answer the question.")
         if value.get("listening"):
             st.markdown('<span class="mic-dot"></span> Listening now', unsafe_allow_html=True)
         if value.get("transcript"):
@@ -182,7 +182,7 @@ def render(context_key: str = "english") -> None:
         """,
         unsafe_allow_html=True,
     )
-    value = speech_recognizer(key=f"{context_key}-reading-mic", seconds=30, prompt="Press start and read the passage.")
+    value = speech_recognizer(key=f"{context_key}-reading-mic", seconds=60, prompt="Press start and read the passage.")
     if value.get("listening"):
         st.markdown('<span class="mic-dot"></span> Listening now', unsafe_allow_html=True)
     if value.get("transcript"):
