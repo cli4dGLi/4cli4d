@@ -50,7 +50,7 @@ def _load_fallbacks() -> Dict[str, Any]:
     try:
         return json.loads(FALLBACK_PATH.read_text(encoding="utf-8"))
     except Exception:
-        return {"maths": [], "english": [], "wordproblems": [], "science": [], "assessment": {}, "passages": []}
+        return {"maths": [], "english": [], "wordproblems": [], "science": [], "coding": [], "assessment": {}, "passages": []}
 
 
 def _extract_text(response: Any) -> str:
@@ -170,6 +170,13 @@ def fallback_science(subtopic: str, count: int = 5) -> List[Dict[str, Any]]:
     return _sample(pool, count)
 
 
+def fallback_coding(subtopic: str, count: int = 5) -> List[Dict[str, Any]]:
+    data = _load_fallbacks().get("coding", [])
+    filtered = [item for item in data if item.get("subtopic", "").lower() == subtopic.lower()]
+    pool = filtered if len(filtered) >= count else data
+    return _sample(pool, count)
+
+
 def fallback_assessment(domain: str, count: int) -> List[Dict[str, Any]]:
     bank = _load_fallbacks().get("assessment", {}).get(domain, [])
     return _sample(bank, min(count, len(bank)))
@@ -259,6 +266,29 @@ def generate_science_items(subtopic: str, level: int) -> List[Dict[str, Any]]:
         _child_context(),
         fallback=lambda: fallback_science(subtopic),
         validator=lambda data: _valid_items(data, ["prompt", "options", "answer", "fact", "emoji", "kind"]),
+        max_tokens=2200,
+    )[:5]
+
+
+def generate_coding_items(subtopic: str, level: int) -> List[Dict[str, Any]]:
+    system = (
+        "You are a joyful coding teacher for a 5-year-old. Generate exactly 5 coding "
+        "thinking questions in JSON. Each item must have 'prompt' (simple Grade 1 words), "
+        "'visual' (emoji or arrow blocks), 'options' (array of 4 short code choices), "
+        "'answer' (string matching one option), 'hint' (one short clue), 'concept' "
+        "('sequence', 'direction', 'loop', 'debug', or 'condition'), and 'emoji'. "
+        f"Difficulty level: {level} where 1=easiest and 5=hardest. Current subtopic: {subtopic}. "
+        "No typed programming language. Use block-code ideas like arrows, first-next-last, "
+        "repeat 3 times, find the bug, and if/then choices. Use gentle Bible-adventure "
+        "settings with Daniel, Miriam, Noah, Ruth, baskets, stars, paths, tents, boats, and scrolls. "
+        "Return ONLY a valid JSON array, no markdown. Every prompt must be clear enough for "
+        "a young child to understand, answer, and be assessed."
+    )
+    return _call_json(
+        system,
+        _child_context(),
+        fallback=lambda: fallback_coding(subtopic),
+        validator=lambda data: _valid_items(data, ["prompt", "visual", "options", "answer", "hint", "concept", "emoji"]),
         max_tokens=2200,
     )[:5]
 
@@ -365,8 +395,8 @@ def generate_assessment_insights(
 
 def generate_weekly_parent_report(history: Dict[str, Any]) -> str:
     fallback = (
-        "This week, the child practised early maths, reading, science, history, and thinking games. Strong moments came when tasks were short, lively, and repeated. "
-        "Next week, keep sessions to about 20 minutes and rotate memory, phonics, story maths, and Wonder Lab. Offline activity: count the items on the dinner table, "
+        "This week, the child practised early maths, reading, coding, science, history, and thinking games. Strong moments came when tasks were short, lively, and repeated. "
+        "Next week, keep sessions to about 20 minutes and rotate memory, phonics, code paths, story maths, and Creation Lab. Offline activity: count the items on the dinner table, "
         "then ask the child to explain how they counted."
     )
     payload = dict(history)

@@ -17,6 +17,9 @@ SKILL_CATALOG: List[Dict[str, str]] = [
     {"module": "science", "subtopic": "Natural Science", "title": "Creation discovery", "reason": "Science facts grow curiosity."},
     {"module": "science", "subtopic": "Geography", "title": "Jonah's map journey", "reason": "Places and maps build world knowledge."},
     {"module": "science", "subtopic": "Geometry", "title": "Noah's shape workshop", "reason": "Shapes help with puzzles, maths, and spatial thinking."},
+    {"module": "coding", "subtopic": "Sequencing", "title": "Daniel's code steps", "reason": "Sequencing builds planning and early coding thinking."},
+    {"module": "coding", "subtopic": "Arrow Paths", "title": "Miriam's arrow path", "reason": "Direction commands grow logic and spatial reasoning."},
+    {"module": "coding", "subtopic": "Loops", "title": "Noah's repeat loop", "reason": "Loops teach efficient repeated thinking."},
     {"module": "puzzles", "subtopic": "Pattern Puzzles", "title": "Solomon's pattern wisdom", "reason": "Patterns train reasoning and prediction."},
     {"module": "puzzles", "subtopic": "Memory Match", "title": "Ruth's memory basket", "reason": "Memory practice helps learning stick."},
     {"module": "puzzles", "subtopic": "Maze Rescue", "title": "Miriam's path maze", "reason": "Mazes build planning and careful moves."},
@@ -27,6 +30,7 @@ MODULE_LABELS = {
     "english": "Reading Scrolls",
     "wordproblems": "Parable Problems",
     "science": "Creation Lab",
+    "coding": "Code Camp",
     "puzzles": "Wisdom Puzzles",
 }
 
@@ -44,11 +48,11 @@ def development_plan(profile: Any | None = None) -> Dict[str, str]:
         focus = "Build listening, counting to 10, rhyme play, colors, and short memory games."
         exercises = "Use quick picture choices, songs, and two-step directions."
     elif age == 5:
-        focus = "Build number bonds, phonics, sight words, story meaning, patterns, and working memory."
-        exercises = "Mix reading scrolls, David's numbers, memory baskets, and simple parable maths."
+        focus = "Build number bonds, phonics, sight words, story meaning, patterns, coding steps, and working memory."
+        exercises = "Mix reading scrolls, David's numbers, code paths, memory baskets, and simple parable maths."
     elif age == 6:
-        focus = "Grow reading fluency, two-step maths, map language, geometry, and reasoning speed."
-        exercises = "Use timed number paths, sentence building, mazes, and creation facts."
+        focus = "Grow reading fluency, two-step maths, map language, geometry, coding loops, and reasoning speed."
+        exercises = "Use timed number paths, sentence building, code debugging, mazes, and creation facts."
     else:
         focus = "Stretch reasoning, independent reading, multi-step problems, and rich vocabulary."
         exercises = "Use harder puzzles, longer passages, word problems, and explain-your-thinking tasks."
@@ -97,14 +101,14 @@ def build_daily_plan(force: bool = False) -> List[Dict[str, Any]]:
         if item["module"] not in used_modules:
             chosen.append(item)
             used_modules.add(item["module"])
-        if len(chosen) == 4:
+        if len(chosen) == 5:
             break
 
-    if len(chosen) < 4:
+    if len(chosen) < 5:
         for item in ranked:
             if item not in chosen:
                 chosen.append(item)
-            if len(chosen) == 4:
+            if len(chosen) == 5:
                 break
 
     fun_reward = next((item for item in SKILL_CATALOG if item["module"] == "puzzles" and item not in chosen), None)

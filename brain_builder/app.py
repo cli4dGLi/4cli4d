@@ -6,7 +6,7 @@ from datetime import date
 import streamlit as st
 
 import database
-from modules import assessment, english, maths, progress, puzzles, science, wordproblems
+from modules import assessment, coding, english, maths, progress, puzzles, science, wordproblems
 from utils import auth
 from utils import gamify
 from utils import styles
@@ -29,6 +29,7 @@ PAGES = {
     "english": "Reading Scrolls",
     "wordproblems": "Parable Problems",
     "science": "Creation Lab",
+    "coding": "Code Camp",
     "puzzles": "Wisdom Puzzles",
     "progress": "Growth Garden",
     "assessment": "Grown-up Tent",
@@ -42,6 +43,7 @@ def _reset_active_runs() -> None:
         "english_run",
         "word_run",
         "science_run",
+        "coding_run",
         "puzzle_run",
         "maze_run",
         "puzzle_topic",
@@ -151,6 +153,7 @@ def _home() -> None:
         ("READING SCROLLS 📖", "english"),
         ("PARABLE PROBLEMS 📚", "wordproblems"),
         ("CREATION LAB 🔬", "science"),
+        ("CODE CAMP 🧭", "coding"),
         ("WISDOM PUZZLES 🧩", "puzzles"),
         ("GROWTH GARDEN 🌟", "progress"),
         ("GROWN-UP TENT 🔐", "assessment"),
@@ -180,6 +183,8 @@ def _render_page(page: str) -> None:
             wordproblems.render()
         elif page == "science":
             science.render()
+        elif page == "coding":
+            coding.render()
         elif page == "puzzles":
             puzzles.render()
         elif page == "progress":

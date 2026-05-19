@@ -1,6 +1,6 @@
 # Brain Builder
 
-Brain Builder is a colourful Streamlit learning app for young children. It includes mental maths, English and reading, Bible-story word problems, Creation Lab science/history, Wisdom Puzzles, progress tracking, a parent-only cognitive assessment centre, and a privacy-first voice reading assessment. The child-facing experience now uses original Bible-adventure companions inspired by David, Esther, Daniel, Ruth, Moses, and Miriam.
+Brain Builder is a colourful Streamlit learning app for young children. It includes mental maths, English and reading, Bible-story word problems, Creation Lab science/history, Code Camp, Wisdom Puzzles, progress tracking, a parent-only cognitive assessment centre, and a privacy-first voice reading assessment. The child-facing experience now uses original Bible-adventure companions inspired by David, Esther, Daniel, Ruth, Moses, and Miriam.
 
 ## Run locally
 
@@ -118,6 +118,18 @@ Wisdom Puzzles adds touch-friendly puzzle quests:
 - Maze Rescue
 
 Maze Rescue uses big arrow buttons to guide the learner through a grid maze.
+
+## Code Camp
+
+Code Camp adds no-typing coding lessons for five-year-olds:
+
+- Sequencing
+- Arrow Paths
+- Loops
+- Debugging
+- If and Then logic
+
+Each session uses big multiple-choice code blocks, read-aloud prompts, instant encouragement, adaptive difficulty, and fallback questions if Claude is unavailable.
 
 ## Daily Wisdom Journey Engine
 
