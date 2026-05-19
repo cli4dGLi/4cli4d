@@ -25,7 +25,7 @@ SUBTOPICS = [
 
 def _timer_seconds(level: int) -> int:
     """Give more thinking time early, then gently increase speed challenge."""
-    return {1: 90, 2: 60, 3: 45, 4: 30, 5: 20}.get(max(1, min(5, level)), 90)
+    return {1: 150, 2: 120, 3: 90, 4: 75, 5: 60}.get(max(1, min(5, level)), 150)
 
 
 def _countdown() -> None:

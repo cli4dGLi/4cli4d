@@ -88,7 +88,7 @@ def score_band(score: float) -> str:
 
 def stars_for_score(score: int, total: int = 5, avg_seconds: float | None = None) -> int:
     accuracy = score / max(total, 1)
-    if accuracy >= 0.8 and (avg_seconds is None or avg_seconds <= 10):
+    if accuracy >= 0.8:
         return 3
     if accuracy >= 0.6:
         return 2

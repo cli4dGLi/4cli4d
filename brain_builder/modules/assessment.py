@@ -184,11 +184,11 @@ def _answer_task(run: Dict[str, Any], task: Dict[str, Any], choice: str) -> None
     if correct:
         points = 1.0
         if task.get("domain") == "psi":
-            if elapsed_ms > 10000:
+            if elapsed_ms > 20000:
                 points = 0.45
-            elif elapsed_ms > 7000:
+            elif elapsed_ms > 15000:
                 points = 0.65
-            elif elapsed_ms > 4500:
+            elif elapsed_ms > 10000:
                 points = 0.82
     domain = task.get("domain")
     run["points"][domain] += points
