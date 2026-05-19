@@ -84,7 +84,7 @@ def _finish(run: Dict[str, Any]) -> None:
     st.markdown("## Reading stars!")
     gamify.reward_chest(stars, run["score"], 5)
     st.markdown(styles.stars_html(stars), unsafe_allow_html=True)
-    styles.child_card(f"You unlocked {run['score']} out of 5 word shields. Super reading! 🌟")
+    styles.child_card(f"You read {run['score']} out of 5 scroll words. Joyful reading! 🌟")
     if st.button("Play reading again"):
         st.session_state.pop("english_run", None)
         st.rerun()
@@ -103,7 +103,7 @@ def _feedback(run: Dict[str, Any]) -> None:
         """,
         unsafe_allow_html=True,
     )
-    gamify.helper_tip("Book Shield says every try grows your reading power.", "📖")
+    gamify.helper_tip("Esther says every try grows your reading wisdom.", "📖")
     if st.button("Next"):
         run["idx"] += 1
         run["feedback"] = None
@@ -166,7 +166,7 @@ def _render_item(run: Dict[str, Any]) -> None:
 
 def render() -> None:
     st.markdown("# English & Reading 📖")
-    gamify.adventure_header("Reading Hero Mission", "📖", "Help Book Shield unlock words and stories.")
+    gamify.adventure_header("Esther's Reading Scrolls", "📖", "Listen for sounds, find words, and understand kind stories.")
     if st.session_state.get("english_topic") == "Read to Me":
         reading_assessment.render("english")
         if st.button("Back to English games"):

@@ -128,10 +128,10 @@ def _finish_puzzle(run: Dict[str, Any]) -> None:
         database.log_session("puzzles", run["subtopic"], run["score"], stars, run["level"])
         database.adapt_difficulty("puzzles", run["score"])
         run["logged"] = True
-    st.markdown("## Puzzle Rescue complete!")
+    st.markdown("## Wisdom puzzle complete!")
     gamify.reward_chest(stars, run["score"], 5)
     st.markdown(styles.stars_html(stars), unsafe_allow_html=True)
-    styles.child_card(f"You solved {run['score']} out of 5 puzzle missions. Puzzle Bot is cheering! 🌟")
+    styles.child_card(f"You solved {run['score']} out of 5 wisdom puzzles. Solomon is cheering! 🌟")
     if st.button("Play more puzzles"):
         st.session_state.pop("puzzle_run", None)
         st.rerun()
@@ -145,7 +145,7 @@ def _answer_puzzle(run: Dict[str, Any], choice: str) -> None:
     if correct:
         run["score"] += 1
         st.session_state.puzzle_balloons = True
-        message = "Yes! Puzzle Bot found the path!"
+        message = "Yes! You found the wise path!"
     else:
         message = claude_api.kind_try_next_message()
     run["feedback"] = {"correct": correct, "message": message, "tip": item.get("tip", "Try the next puzzle power.")}
@@ -232,7 +232,7 @@ def _start_maze() -> None:
         "goal": _find_cell(grid, "G"),
         "moves": 0,
         "visited": [_find_cell(grid, "S")],
-        "message": "Help Rescue Pup reach the pink goal!",
+        "message": "Help Miriam find the pink goal!",
         "logged": False,
     }
     st.rerun()
@@ -274,7 +274,7 @@ def _move_maze(run: Dict[str, Any], dr: int, dc: int) -> None:
             run["logged"] = True
         run["score"] = score
         run["stars"] = stars
-        run["message"] = "Rescue complete! You found the way!"
+        run["message"] = "Journey complete! You found the way!"
         st.session_state.maze_balloons = True
     else:
         run["message"] = "Good move. Keep finding the path!"
@@ -289,7 +289,7 @@ def _render_maze_grid(run: Dict[str, Any]) -> None:
         for c, cell in enumerate(row):
             pos = (r, c)
             if pos == run["pos"]:
-                cells.append('<div class="maze-cell maze-hero">🐶</div>')
+                cells.append('<div class="maze-cell maze-hero">🧺</div>')
             elif pos == run["goal"]:
                 cells.append('<div class="maze-cell maze-goal">🏁</div>')
             elif cell == "#":
@@ -307,8 +307,8 @@ def _render_maze_grid(run: Dict[str, Any]) -> None:
 def _render_maze() -> None:
     run = st.session_state.get("maze_run")
     if not run:
-        styles.child_card("Guide Rescue Pup through the maze. Use the big arrows.")
-        if st.button("Start maze rescue"):
+        styles.child_card("Guide Miriam through the maze. Use the big arrows.")
+        if st.button("Start wisdom maze"):
             _countdown()
             _start_maze()
         return
@@ -316,7 +316,7 @@ def _render_maze() -> None:
     if run.get("score"):
         if st.session_state.pop("maze_balloons", False):
             st.balloons()
-        st.markdown("## Maze rescue complete!")
+        st.markdown("## Wisdom maze complete!")
         gamify.reward_chest(run["stars"], run["score"], 5)
         st.markdown(styles.stars_html(run["stars"]), unsafe_allow_html=True)
         styles.child_card(f"You reached the goal in {run['moves']} moves.")
@@ -327,7 +327,7 @@ def _render_maze() -> None:
 
     gamify.mission_progress(min(run["moves"] + 1, 5), 5, max(0, 5 - run["moves"] // 4))
     _render_maze_grid(run)
-    gamify.helper_tip(run["message"], "🐶")
+    gamify.helper_tip(run["message"], "🧺")
     top = st.columns([1, 1, 1])
     with top[1]:
         if st.button("⬆️", key="maze-up"):
@@ -337,7 +337,7 @@ def _render_maze() -> None:
         if st.button("⬅️", key="maze-left"):
             _move_maze(run, 0, -1)
     with middle[1]:
-        st.button("🐶", key="maze-pup", disabled=True)
+        st.button("🧺", key="maze-guide", disabled=True)
     with middle[2]:
         if st.button("➡️", key="maze-right"):
             _move_maze(run, 0, 1)
@@ -348,8 +348,8 @@ def _render_maze() -> None:
 
 
 def render() -> None:
-    st.markdown("# Puzzle Rescue 🧩")
-    gamify.adventure_header("Puzzle Rescue", "🧩", "Puzzle Bot and Rescue Pup need your brain power.")
+    st.markdown("# Wisdom Puzzles 🧩")
+    gamify.adventure_header("Solomon's Wisdom Puzzles", "🧩", "Use memory, patterns, and careful paths to grow wisdom.")
 
     if st.session_state.get("puzzle_topic") == "Maze Rescue":
         _render_maze()

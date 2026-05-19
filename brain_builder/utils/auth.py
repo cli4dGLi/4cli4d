@@ -60,9 +60,16 @@ def _configured_password_hash() -> Optional[str]:
     return _secret("BRAIN_BUILDER_ADMIN_PASSWORD_HASH")
 
 
+def _configured_password() -> Optional[str]:
+    return _secret("BRAIN_BUILDER_ADMIN_PASSWORD")
+
+
 def _bootstrap_secret_admin() -> bool:
-    username = _configured_username()
+    username = _configured_username() or "clifford"
     password_hash = _configured_password_hash()
+    password = _configured_password()
+    if not password_hash and password:
+        password_hash = hash_password(password)
     if not username or not password_hash:
         return False
     database.upsert_app_user(
@@ -161,6 +168,24 @@ def _render_admin_user_tools() -> None:
         )
 
 
+def _render_parent_approval_settings(prefix: str = "admin") -> None:
+    st.markdown("## Parent approvals")
+    allowed_now = database.ai_child_profile_context_allowed()
+    allow_context = st.checkbox(
+        "Parent-approved Claude personalization",
+        value=allowed_now,
+        key=f"{prefix}-ai-profile-context-allowed",
+        help="When on, Claude may receive the active child's name, age, and date of birth for tailored plans and examples.",
+    )
+    st.caption(
+        "This is off by default. When it is off, Claude only receives the task, difficulty, "
+        "and learning performance, not the child's name or date of birth."
+    )
+    if st.button("Save parent approval", key=f"{prefix}-save-parent-approval"):
+        database.set_ai_child_profile_context_allowed(bool(allow_context))
+        st.success("Parent approval setting saved.")
+
+
 def render_admin_page() -> None:
     if st.session_state.get("auth_role") != "admin":
         st.warning("Admin access is needed for this page.")
@@ -168,6 +193,8 @@ def render_admin_page() -> None:
 
     st.markdown("# Admin Settings 🔐")
     st.markdown('<div class="brain-card friendly-text">Create learner accounts, reset passwords, and manage access.</div>', unsafe_allow_html=True)
+
+    _render_parent_approval_settings("admin-page")
 
     st.markdown("## Create a user")
     with st.form("admin-page-create-user-form", clear_on_submit=True):
@@ -251,9 +278,26 @@ def require_login() -> bool:
     has_secret_admin = _bootstrap_secret_admin()
     if not has_secret_admin and not database.list_app_users():
         st.markdown("# Brain Builder Login")
-        st.info(
-            "Grown-up setup needed. Add BRAIN_BUILDER_ADMIN_USERNAME and "
-            "BRAIN_BUILDER_ADMIN_PASSWORD_HASH to Streamlit secrets."
+        st.info("Grown-up setup needed before the first sign in.")
+        st.markdown(
+            """
+            <div class="brain-card friendly-text">
+                Open <b>Manage app</b> in Streamlit Cloud, then go to
+                <b>Settings</b> -> <b>Secrets</b>. Add the admin username and password,
+                save, and reboot the app.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.code(
+            'ANTHROPIC_API_KEY = "sk-ant-your-key-here"\n'
+            'BRAIN_BUILDER_ADMIN_USERNAME = "clifford"\n'
+            'BRAIN_BUILDER_ADMIN_PASSWORD = "your-admin-password"',
+            language="toml",
+        )
+        st.caption(
+            "For higher security, you can use BRAIN_BUILDER_ADMIN_PASSWORD_HASH instead of "
+            "BRAIN_BUILDER_ADMIN_PASSWORD. The app hashes the plain password internally before saving it."
         )
         return False
 
@@ -268,6 +312,16 @@ def require_login() -> bool:
                 if st.button("Admin settings"):
                     st.session_state.page = "admin"
                     st.rerun()
+                with st.expander("Parent approvals"):
+                    allowed_now = database.ai_child_profile_context_allowed()
+                    allow_context = st.checkbox(
+                        "Allow child profile details for Claude personalization",
+                        value=allowed_now,
+                        key="sidebar-ai-profile-context-allowed",
+                    )
+                    if st.button("Save approval", key="sidebar-save-parent-approval"):
+                        database.set_ai_child_profile_context_allowed(bool(allow_context))
+                        st.success("Saved.")
         return True
 
     st.markdown("# Brain Builder Login")

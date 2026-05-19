@@ -70,15 +70,15 @@ def _parent_summary() -> None:
 
 
 def render() -> None:
-    st.markdown("# Hero Map 🌟")
-    gamify.adventure_header("Hero Map", "🗺️", "See your hero points, badges, and learning trails.")
+    st.markdown("# Growth Garden 🌟")
+    gamify.adventure_header("Growth Garden", "🗺️", "See your wisdom stars, badges, and learning trails.")
     gamify.player_hud()
     c1, c2, c3 = st.columns(3)
-    c1.metric("Hero points", database.get_total_stars())
+    c1.metric("Wisdom stars", database.get_total_stars())
     c2.metric("Day streak", database.get_current_streak())
     c3.metric("Goal", "2 modules today")
 
-    st.markdown("## Daily Hero Training")
+    st.markdown("## Daily Wisdom Journey")
     gamify.daily_training_card()
     snapshot = learning_engine.mastery_snapshot()
     if snapshot:

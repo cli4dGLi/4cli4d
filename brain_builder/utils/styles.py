@@ -28,15 +28,24 @@ def inject_global_css() -> None:
         }
 
         div[data-testid="stMarkdownContainer"],
+        div[data-testid="stCaptionContainer"],
         div[data-testid="stWidgetLabel"],
         div[data-testid="stRadio"] label,
         div[data-testid="stSelectbox"] label,
         div[data-testid="stTextInput"] label,
+        div[data-testid="stNumberInput"] label,
+        div[data-testid="stDateInput"] label,
+        div[data-testid="stCheckbox"] label,
+        div[data-testid="stForm"] label,
         div[data-testid="stExpander"] details,
         div[data-testid="stExpander"] summary,
         .stRadio p,
         .stSelectbox p,
-        .stTextInput p {
+        .stTextInput p,
+        .stNumberInput p,
+        .stDateInput p,
+        .stCheckbox p,
+        .stCaptionContainer {
             color: var(--ink) !important;
         }
 
