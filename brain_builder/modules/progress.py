@@ -70,44 +70,6 @@ def _parent_summary() -> None:
 
 
 def render() -> None:
-    st.markdown("# Growth Garden 🌟")
-    gamify.adventure_header("Growth Garden", "🗺️", "See your wisdom stars, badges, and learning trails.")
-    gamify.player_hud()
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Wisdom stars", database.get_total_stars())
-    c2.metric("Day streak", database.get_current_streak())
-    c3.metric("Goal", "2 modules today")
-
-    st.markdown("## Daily Wisdom Journey")
-    gamify.daily_training_card()
-    snapshot = learning_engine.mastery_snapshot()
-    if snapshot:
-        st.markdown("## Skills to grow")
-        st.dataframe(
-            [
-                {
-                    "Skill": row["display_name"],
-                    "Module": learning_engine.MODULE_LABELS.get(row["module"], row["module"].title()),
-                    "Mastery": f"{row['mastery_pct']}%",
-                    "Due": row["next_due_date"],
-                    "Attempts": row["attempts"],
-                }
-                for row in snapshot
-            ],
-            use_container_width=True,
-        )
-
-    st.markdown("## Last games")
-    _scores_chart()
-
-    st.markdown("## Badges")
-    _badges()
-
-    styles.child_card("Today's goal: Complete 2 modules today!")
-    _parent_summary()
-
-
-def render() -> None:
     profile = database.get_child_profile()
     name = profile["name"] if profile else "Your"
     st.markdown("# Growth Garden 🌟")

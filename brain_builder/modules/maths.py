@@ -42,7 +42,7 @@ def _start(subtopic: str) -> None:
     try:
         questions = claude_api.generate_maths_questions(subtopic, level)
     except Exception:
-        questions = claude_api.fallback_maths(subtopic)
+        questions = claude_api.fallback_maths(subtopic, level=level)
     st.session_state.maths_run = {
         "subtopic": subtopic,
         "level": level,
@@ -146,23 +146,6 @@ def _render_question(run: Dict[str, Any]) -> None:
             with cols[offset]:
                 if st.button(choice, key=f"maths-{run['idx']}-{choice}-{offset}"):
                     _answer(run, choice)
-
-
-def render() -> None:
-    st.markdown("# Mental Maths 🧮")
-    gamify.adventure_header("David's Number Songs", "🎵", "Count stones, sheep, and stars with careful thinking.")
-    run = st.session_state.get("maths_run")
-    if run:
-        _render_question(run)
-        return
-
-    styles.child_card("Pick a maths game. Then tap the big answer buttons.")
-    for row_start in range(0, len(SUBTOPICS), 2):
-        cols = st.columns(2)
-        for offset, subtopic in enumerate(SUBTOPICS[row_start : row_start + 2]):
-            with cols[offset]:
-                if st.button(subtopic, key=f"maths-topic-{subtopic}"):
-                    _start(subtopic)
 
 
 def render() -> None:

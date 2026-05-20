@@ -16,20 +16,6 @@ from utils.scoring import calculate_composite, percent_to_standard_score, percen
 from utils.tts import read_button
 
 
-def _pin_gate() -> bool:
-    if st.session_state.get("assessment_parent_ok"):
-        return True
-    st.markdown("# OB's Assessment Centre 🔐")
-    styles.child_card("This area is for grown-ups.")
-    pin = st.text_input("Parent PIN", type="password", max_chars=4, key="assessment-pin")
-    if pin == database.get_parent_pin():
-        st.session_state.assessment_parent_ok = True
-        st.rerun()
-    elif pin:
-        st.warning("Please ask a grown-up to try again.")
-    return False
-
-
 def _settings_panel() -> None:
     with st.expander("Parent settings"):
         st.write("Change parent PIN")
@@ -280,25 +266,6 @@ def render_run_assessment() -> None:
         mini_domain = st.selectbox("Mini-check domain", list(DOMAINS.keys()), format_func=lambda value: DOMAINS[value])
     if st.button("Start assessment"):
         _start_assessment(assessment_type, mini_domain)
-
-
-def render() -> None:
-    if not _pin_gate():
-        return
-    st.markdown("# OB's Assessment Centre 🧠")
-    gamify.adventure_header("Grown-Up Tent", "🔐", "Playful checks for memory, speed, words, shapes, and thinking.")
-    _settings_panel()
-    tab_run, tab_dash, tab_insights, tab_reading = st.tabs(
-        ["A) Run Assessment", "B) Intelligence Dashboard", "C) AI Insights & Roadmap", "Read to Me"]
-    )
-    with tab_run:
-        render_run_assessment()
-    with tab_dash:
-        parent_dashboard.render_dashboard()
-    with tab_insights:
-        parent_dashboard.render_insights()
-    with tab_reading:
-        reading_assessment.render("assessment")
 
 
 def _pin_gate() -> bool:
