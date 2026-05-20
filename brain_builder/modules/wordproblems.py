@@ -27,7 +27,7 @@ def _start() -> None:
     try:
         problems = claude_api.generate_word_problems(level)
     except Exception:
-        problems = claude_api.fallback_word_problems()
+        problems = claude_api.fallback_word_problems(level=level)
     st.session_state.word_run = {
         "level": level,
         "problems": problems,
@@ -113,18 +113,6 @@ def _render_problem(run: Dict[str, Any]) -> None:
         with cols[index]:
             if st.button(choice, key=f"word-{run['idx']}-{index}"):
                 _answer(run, choice)
-
-
-def render() -> None:
-    st.markdown("# Word Problems 📚")
-    gamify.adventure_header("Bible Story Maths", "🧺", "Solve gentle stories with baskets, scrolls, sheep, bread, and stars.")
-    run = st.session_state.get("word_run")
-    if run:
-        _render_problem(run)
-        return
-    styles.child_card("Read the little story. Then tap the answer.")
-    if st.button("Start story maths"):
-        _start()
 
 
 def render() -> None:
